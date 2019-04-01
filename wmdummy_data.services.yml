@@ -1,0 +1,17 @@
+services:
+  plugin.manager.dummy_data:
+    class: Drupal\wmdummy_data\DummyDataManager
+    parent: default_plugin_manager
+
+  wmdummy_data.dummy_data_generator:
+    class: Drupal\wmdummy_data\Service\Generator\DummyDataGenerator
+    arguments:
+      - '@entity_type.manager'
+      - '@entity_field.manager'
+      - '@plugin.manager.dummy_data'
+    calls:
+      - [setContentManager, ['@?wmcontent.manager']]
+
+  wmdummy_data.faker:
+    class: Faker\Generator
+    factory: Faker\Factory::create
