@@ -4,7 +4,6 @@ namespace Drupal\wmdummy_data;
 
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\wmdummy_data\Annotation\DummyData;
 use Faker\Generator as Faker;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
