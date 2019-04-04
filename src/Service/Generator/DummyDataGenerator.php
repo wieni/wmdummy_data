@@ -157,6 +157,9 @@ class DummyDataGenerator
 
             foreach ($childBundles as $childBundle) {
                 $ran = random_int(0, 1);
+                if ($entity instanceof Page){
+                    $ran = 0;
+                }
                 if ($ran === 1) {
                     continue;
                 }
