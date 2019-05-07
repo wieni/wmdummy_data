@@ -10,6 +10,7 @@ services:
       - '@entity_field.manager'
       - '@plugin.manager.dummy_data'
       - '@state'
+      - '@language_manager'
     calls:
       - [setContentManager, ['@?wmcontent.manager']]
 
