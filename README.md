@@ -43,7 +43,9 @@ class SomeGenerator extends DummyDataBase
 ## Annotations 
 ### ID 
 To make sure the generator file can be used for the entity, make sure the generator ID is named after the **entity type** and **bundle** of the entity. (see example below)
-The last section of the id, is the name of the preset. This allows multiple generators for the same entity.
+The last section of the id, is the name of the preset. This allows multiple generators for the same entity. 
+In case the preset id does not contain a preset name, it will be considered a default.
+
 ```
 /**
  * @DummyData(
@@ -107,4 +109,31 @@ class SomeGenerator extends DummyDataBase implements ContentGenerateInterface
 }
 ```
 
-In case the field description is empty, like the entity *faq* in the example above, the module will look for a preset with the **same preset name as the parent**. If that does not exist, the module will look for the **default preset**. If that also does not exist, the module will use no presets and generate every field with the **standard** generator.
+In case the field description is empty, like the entity *faq* in the example above, the module will look for a preset with the **same preset name as the parent**. If that does not exist, the module will look for the **default preset** (generators that end with ***.default***). If that also does not exist, the module will use no presets and generate every field with the **standard** (basic) generator.
+
+
+## Entity References in the generator files 
+Every plugin that extends DummyDataBase has access to the function **$this->dummyDataGenerator->generateReferencedEntity**. This function can be used to generate referenced entities. 
+See example of usage below. 
+
+```
+/**
+ * @DummyData(
+ *   id = "content_block.logo",
+ * )
+ */
+class LogoGenerator extends DummyDataBase
+{
+
+    public function generate(): array
+    {
+        $entityArray = $this->dummyDataGenerator->generateReferencedEntity('media', 'image', 'default', 'en');
+        $entityArray['title'] = $this->faker->sentence($this->faker->randomDigitNotNull);
+        $entityArray['description'] = $this->faker->paragraph($this->faker->randomDigitNotNull);
+
+        return [
+            'field_logo_logos' => $entityArray,
+        ];
+    }
+}
+```

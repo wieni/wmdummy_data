@@ -3,32 +3,43 @@
 namespace Drupal\wmdummy_data\Service\Generator;
 
 use Drupal\Core\Entity\ContentEntityStorageInterface;
-use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\Core\State\StateInterface;
 use Drupal\wmcontent\WmContentManager;
 use Drupal\wmdummy_data\ContentGenerateInterface;
+use Drupal\wmdummy_data\DummyDataInterface;
 use Drupal\wmdummy_data\DummyDataManager;
 
 class DummyDataGenerator
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
-    /** @var EntityFieldManager */
+    /** @var EntityFieldManagerInterface */
     protected $entityFieldManager;
     /** @var DummyDataManager */
     protected $dummyDataManager;
     /** @var WmContentManager */
     protected $wmContentManager;
+    /** @var StateInterface */
+    protected $state;
+    /** @var LanguageManagerInterface */
+    protected $languageManager;
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
-        EntityFieldManager $entityFieldManager,
-        DummyDataManager $dummyDataManager
+        EntityFieldManagerInterface $entityFieldManager,
+        DummyDataManager $dummyDataManager,
+        StateInterface $state,
+        LanguageManagerInterface $languageManager
     ) {
         $this->entityTypeManager = $entityTypeManager;
         $this->entityFieldManager = $entityFieldManager;
         $this->dummyDataManager = $dummyDataManager;
+        $this->state = $state;
+        $this->languageManager = $languageManager;
     }
 
     public function setContentManager(WmContentManager $wmContentManager): void
@@ -36,41 +47,45 @@ class DummyDataGenerator
         $this->wmContentManager = $wmContentManager;
     }
 
-    public function generateDummyData(string $entityType, string $bundle, string $preset, int $count, string $langcode): array
+    public function generateDummyData(string $entityType, string $bundle, string $preset, string $langcode): array
     {
         $createdEntities = [];
-        $presetId = $entityType . '.' . $bundle. '.' . $preset;
-        if ($preset !== 'basic') {
-            $presetsExists = $this->presetsExists($presetId, $langcode);
-        }
 
-        for ($x = 0; $x < $count; $x++) {
-            $entityPreset = [];
-            if (isset($presetsExists) && $presetsExists) {
-                $entityPreset = $this->dummyDataManager->createInstance($presetId)->generate();
-            }
+        $entityPreset = $this->getInstance($entityType, $bundle, $preset)->generate();
 
-            $entity_storage = $this->entityTypeManager->getStorage($entityType);
-            if ($entity_storage instanceof ContentEntityStorageInterface) {
-                $values = $this->getSpecialFields($entityType, $bundle, $langcode, $entityPreset);
-                $entity =  $entity_storage->createWithSampleValues($bundle, $values);
-                $entity->save();
+        $entityStorage = $this->entityTypeManager->getStorage($entityType);
+        if ($entityStorage instanceof ContentEntityStorageInterface) {
+            $values = $this->getSpecialFields($entityType, $bundle, $langcode, $entityPreset);
+            $entity =  $entityStorage->createWithSampleValues($bundle, $values);
+            $entity->save();
+            $this->storeGeneratedEntityId($entityType, $entity);
 
-                if (isset($this->wmContentManager)) {
-                    if ($preset !== 'basic' && $this->dummyDataManager->createInstance($presetId) instanceof ContentGenerateInterface) {
-                        $contentPreset = $this->dummyDataManager->createInstance($presetId)->generateContent();
-                        $createdChildren = $this->generateSpecificContentBlocks($entity, $langcode, $contentPreset, $preset);
-                    } else {
-                        $createdChildren = $this->generateRandomContentBlocks($entity, $langcode, $preset);
-                    }
-                    $createdEntities[$entity->id()] = $createdChildren;
+            if (isset($this->wmContentManager)) {
+                if ($preset !== 'basic' && $this->getInstance($entityType, $bundle, $preset) instanceof ContentGenerateInterface) {
+                    $contentPreset = $this->getInstance($entityType, $bundle, $preset)->generateContent();
+                    $createdChildren = $this->generateSpecificContentBlocks($entity, $langcode, $contentPreset, $preset);
+                } else {
+                    $createdChildren = $this->generateRandomContentBlocks($entity, $langcode, $preset);
                 }
+                $createdEntities[$entity->id()] = $createdChildren;
             }
         }
+
         return $createdEntities;
     }
 
-    public function getSpecialFields(string $entityType, string $bundle, string $langcode, array &$entityPreset): array
+    /* eerst checken of het bestaat met presetExists */
+    private function getInstance(string $entityType, string $bundle, string $preset): DummyDataInterface
+    {
+        try {
+            $instance = $this->dummyDataManager->createInstance("{$entityType}.{$bundle}.{$preset}");
+        } catch (\Exception $exception) {
+            $instance = $this->dummyDataManager->createInstance("{$entityType}.{$bundle}");
+        }
+        return $instance;
+    }
+
+    private function getSpecialFields(string $entityType, string $bundle, string $langcode, array &$entityPreset): array
     {
         $entityDefinition = $this->entityTypeManager->getDefinition($entityType);
         $entityFieldDefinition = $this->entityFieldManager->getFieldDefinitions($entityType, $bundle);
@@ -83,7 +98,8 @@ class DummyDataGenerator
             }
         }
 
-        /** TODO: Remove this if issue is fixed
+        /**
+         * TODO: Remove this if issue is fixed
          * @see https://www.drupal.org/project/drupal/issues/2915034
          */
         if ($entityDefinition->hasKey('default_langcode')) {
@@ -137,14 +153,22 @@ class DummyDataGenerator
         return $entityPreset;
     }
 
-    public function presetsExists(string $presetId, string $langcode): bool
+    public function presetExists(string $entityType, string $bundle, string $preset, string $langcode): bool
     {
+        $presetIds = ["{$entityType}.{$bundle}.{$preset}"];
+        if ($preset === 'default') {
+            $presetIds[] = "{$entityType}.{$bundle}";
+        }
+
         $entityPresets = $this->dummyDataManager->getDefinitions();
 
-        if (isset($entityPresets[$presetId])) {
+        foreach ($presetIds as $presetId) {
             if (
-                !isset($entityPresets[$presetId]['langcode']) ||
-                $entityPresets[$presetId]['langcode'] === $langcode
+                isset($entityPresets[$presetId])
+                && (
+                    !isset($entityPresets[$presetId]['langcode']) ||
+                    $entityPresets[$presetId]['langcode'] === $langcode
+                )
             ) {
                 return true;
             }
@@ -152,7 +176,7 @@ class DummyDataGenerator
         return false;
     }
 
-    public function generateRandomContentBlocks(EntityInterface $entity, string $langcode, string $preset): int
+    private function generateRandomContentBlocks(EntityInterface $entity, string $langcode, string $preset): int
     {
         $containers = $this->wmContentManager->getHostContainers($entity);
         $entityId = $entity->id();
@@ -174,30 +198,24 @@ class DummyDataGenerator
                     continue;
                 }
 
-                // check if preset exists, if not use default, if not use basic
-                $presetId = $childEntityType . '.' . $childBundle . '.' . $preset;
-                $presetsExists = $this->presetsExists($presetId, $langcode);
-                if (!$presetsExists) {
-                    $presetId = $childEntityType . '.' . $childBundle . '.default';
-                    $presetsExists = $this->presetsExists($presetId, $langcode);
-                }
-                $entityPreset = [];
-                if ($presetsExists) {
-                    $entityPreset = $this->dummyDataManager->createInstance($presetId)->generate();
-                }
+                $count = random_int(1, 7);
 
-                $bundlePreset = $this->childPresetHandler($entityPreset, $childEntityType, $childBundle, $langcode, $entityId, $entityType, $entityContainer);
+                for ($x = 0; $x < $count; $x++) {
+                    $entityPreset = $this->getChildPreset($childEntityType, $childBundle, $preset, $langcode);
+                    $completedPreset = $this->childPresetHandler($entityPreset, $childEntityType, $childBundle, $langcode, $entityId, $entityType, $entityContainer);
 
-                $entity_storage = $this->entityTypeManager->getStorage($childEntityType);
-                $child = $entity_storage->createWithSampleValues($childBundle, $bundlePreset);
-                $child->save();
-                $createdContainers++;
+                    $entityStorage = $this->entityTypeManager->getStorage($childEntityType);
+                    $child = $entityStorage->createWithSampleValues($childBundle, $completedPreset);
+                    $child->save();
+                    $this->storeGeneratedEntityId($childEntityType, $child);
+                    $createdContainers++;
+                }
             }
         }
         return $createdContainers;
     }
 
-    public function generateSpecificContentBlocks(EntityInterface $entity, string $langcode, array $contentPreset, string $hostPreset): int
+    private function generateSpecificContentBlocks(EntityInterface $entity, string $langcode, array $contentPreset, string $hostPreset): int
     {
         $entityId = $entity->id();
         $entityType = $entity->getEntityType()->id();
@@ -216,22 +234,14 @@ class DummyDataGenerator
 
             foreach ($entityPreset as $bundleName => $bundlePreset) {
                 if (empty($bundlePreset)) {
-                    // check if preset exists, if not use default, if not use basic
-                    $presetId = $entityName . '.' . $bundleName . '.' . $hostPreset;
-                    $presetsExists = $this->presetsExists($presetId, $langcode);
-                    if (!$presetsExists) {
-                        $presetId = $entityName . '.' . $bundleName . '.default';
-                        $presetsExists = $this->presetsExists($presetId, $langcode);
-                    }
-                    if ($presetsExists) {
-                        $bundlePreset = $this->dummyDataManager->createInstance($presetId)->generate();
-                    }
+                    $bundlePreset = $this->getChildPreset($entityName, $bundleName, $hostPreset, $langcode);
                 }
-                $childPreset = $this->childPresetHandler($bundlePreset, $entityName, $bundleName, $langcode, $entityId, $entityType, $containerId);
-                $entity_storage = $this->entityTypeManager->getStorage($entityName);
+                $completedPreset = $this->childPresetHandler($bundlePreset, $entityName, $bundleName, $langcode, $entityId, $entityType, $containerId);
+                $entityStorage = $this->entityTypeManager->getStorage($entityName);
 
-                $child = $entity_storage->createWithSampleValues($bundleName, $childPreset);
+                $child = $entityStorage->createWithSampleValues($bundleName, $completedPreset);
                 $child->save();
+                $this->storeGeneratedEntityId($entityName, $child);
 
                 $createdContainers++;
             }
@@ -239,7 +249,21 @@ class DummyDataGenerator
         return $createdContainers;
     }
 
-    public function childPresetHandler(array $bundlePreset, string $childType, string $childBundle, string $langcode, int $parentId, string $parentType, string $containerId): array
+    private function getChildPreset (string $childEntityType, string $childBundle, string $parentPreset, string $langcode): array
+    {
+        // check if preset exists, if not use default, if not use basic
+        $presetsExists = $this->presetExists($childEntityType, $childBundle, $parentPreset, $langcode);
+        if ($presetsExists) {
+            return $this->getInstance($childEntityType, $childBundle, $parentPreset)->generate();
+        }
+        $presetsExists = $this->presetExists($childEntityType, $childBundle, 'default', $langcode);
+        if ($presetsExists) {
+            return $this->getInstance($childEntityType, $childBundle, 'default')->generate();
+        }
+        return [];
+    }
+
+    private function childPresetHandler(array $bundlePreset, string $childType, string $childBundle, string $langcode, int $parentId, string $parentType, string $containerId): array
     {
         $entityDefinition = $this->entityTypeManager->getDefinition($childType);
         $entityFieldDefinition = $this->entityFieldManager->getFieldDefinitions($childType, $childBundle);
@@ -260,5 +284,54 @@ class DummyDataGenerator
         $bundlePreset['wmcontent_container'] = $containerId;
 
         return $bundlePreset;
+    }
+
+    private function storeGeneratedEntityId(string $entityType, $entity): void
+    {
+        $key = "wmdummy_data.{$entityType}";
+        $package = $this->state->get($key, []);
+
+        $package[$entity->id()] = $entity->id();
+        $this->state->set($key, $package);
+        $this->setStateKey($key);
+    }
+
+    private function setStateKey(string $key): void
+    {
+        $keys = $this->state->get('wmdummy_data_keys', []);
+
+        if (!isset($keys[$key])) {
+            $keys[$key] = $key;
+        }
+
+        $this->state->set('wmdummy_data_keys', $keys);
+    }
+
+    public function generateReferencedEntity(string $entityType, string $bundle, string $preset = 'default', string $langcode = null): array
+    {
+        if (!$langcode) {
+            $langcode = $this->languageManager->getDefaultLanguage()->getId();
+        }
+
+        if (!$this->presetExists($entityType, $bundle, $preset, $langcode)) {
+            throw new \InvalidArgumentException(
+                t('The preset \':preset\' for the referenced entity \':entityType\' \':bundleType\' does not exist.', [':preset' => $preset, ':entityType' => $entityType, ':bundleType' => $bundle])
+            );
+        }
+
+        $entityPreset = $this->getInstance($entityType, $bundle, $preset)->generate();
+
+        $entityStorage = $this->entityTypeManager->getStorage($entityType);
+        if ($entityStorage instanceof ContentEntityStorageInterface) {
+            $values = $this->getSpecialFields($entityType, $bundle, $langcode, $entityPreset);
+            $entity =  $entityStorage->createWithSampleValues($bundle, $values);
+            $entity->save();
+            $this->storeGeneratedEntityId($entityType, $entity);
+            return [
+                'entity' => $entity,
+            ];
+        }
+
+        return [];
     }
 }

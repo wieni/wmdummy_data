@@ -2,19 +2,25 @@
 
 namespace Drupal\wmdummy_data\Traits;
 
+use Faker\Generator;
+
+/**
+ * @property Generator $faker
+ */
 trait HtmlTextCreateTrait
 {
     protected function createTaggedTextBlock(): string
     {
         $textPieces = [
-            $this->createHeader(2),
+            $this->createHeader($this->faker->randomDigitNotNull),
             $this->createTaggedParagraph(),
-            $this->createHeader(3),
+            $this->createHeader($this->faker->randomDigitNotNull),
             sprintf(
                 '<p>%s %s %s</p>',
-                $this->faker->sentence,
+                $this->faker->sentence($this->faker->randomDigitNotNull),
                 $this->createHref(),
-                $this->faker->sentence),
+                $this->faker->sentence($this->faker->randomDigitNotNull)
+            ),
             $this->createTaggedString(),
             $this->createOrdenedList(),
             $this->createUnordenedList(),
@@ -28,9 +34,9 @@ trait HtmlTextCreateTrait
         $header = sprintf(
             '<h%d>%s <strong>%s </strong>%s <em>%s </em></h%d>',
             $size,
-            $this->faker->sentence,
+            $this->faker->sentence($this->faker->randomDigitNotNull),
             $this->faker->word,
-            $this->faker->word,
+            $this->faker->sentence($this->faker->randomDigitNotNull),
             $this->faker->word,
             $size
         );
@@ -41,9 +47,9 @@ trait HtmlTextCreateTrait
     {
         $text = sprintf(
             '<p> %s <strong> %s </strong> %s %s</p>',
-            $this->faker->paragraph,
-            $this->faker->sentence,
-            $this->faker->sentence,
+            $this->faker->paragraph($this->faker->randomDigitNotNull),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
             $this->createHref()
         );
         return $text;
@@ -53,10 +59,10 @@ trait HtmlTextCreateTrait
     {
         $string = sprintf(
             '<p>%s <em>%s</em> <strong>%s</strong> %s</p>',
-            $this->faker->sentence(4),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
             $this->faker->word,
             $this->faker->word,
-            $this->faker->sentence(2)
+            $this->faker->sentence($this->faker->randomDigitNotNull)
         );
         return $string;
     }
@@ -69,9 +75,9 @@ trait HtmlTextCreateTrait
                 <li> %s </li>
                 <li> %s <em> %s </em></li>
             </ol>',
-            $this->faker->sentence,
-            $this->faker->sentence,
-            $this->faker->sentence,
+            $this->faker->sentence($this->faker->randomDigitNotNull),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
             $this->faker->word
         );
 
@@ -86,9 +92,9 @@ trait HtmlTextCreateTrait
                 <li> %s </li>
                 <li> %s <em> %s </em></li>
             </ul>',
-            $this->faker->sentence,
-            $this->faker->sentence,
-            $this->faker->sentence(4),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
+            $this->faker->sentence($this->faker->randomDigitNotNull),
             $this->faker->word
         );
 
@@ -117,7 +123,7 @@ trait HtmlTextCreateTrait
         $link = sprintf(
             '<a href="%s"> %s </a>',
             $this->faker->url,
-            $this->faker->sentence(3)
+            $this->faker->sentence($this->faker->randomDigitNotNull)
             );
 
         return $link;
@@ -129,27 +135,27 @@ trait HtmlTextCreateTrait
             '<table><tbody>',
             '<tr>',
             sprintf('<th>%s</th>', $this->faker->word),
-            sprintf('<th>%s</th>', $this->faker->word),
-            sprintf('<th>%s</th>', $this->faker->word),
+            sprintf('<th>%s</th>', $this->faker->sentence($this->faker->randomDigitNotNull)),
+            sprintf('<th>%s</th>', $this->faker->sentence($this->faker->randomDigitNotNull)),
             '</tr>',
             '<tr>',
             sprintf(
                 '<td><strong>%s</strong> %s</td>',
-                $this->faker->word,
-                $this->faker->word
+                $this->faker->sentence($this->faker->randomDigitNotNull),
+                $this->faker->sentence($this->faker->randomDigitNotNull)
             ),
             sprintf(
                 '<td>%s <em>%s</em> %s</td>',
+                $this->faker->sentence($this->faker->randomDigitNotNull),
                 $this->faker->word,
-                $this->faker->word,
-                $this->faker->word
+                $this->faker->sentence($this->faker->randomDigitNotNull)
                 ),
-            sprintf('<td>%s</td>', $this->faker->sentence),
+            sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
             '</tr>',
             '<tr>',
-            sprintf('<td>%s</td>', $this->faker->sentence),
-            sprintf('<td>%s</td>', $this->faker->sentence),
-            sprintf('<td>%s</td>', $this->faker->sentence),
+            sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
+            sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
+            sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
             '</tr>',
             '</tbody></table>'
         ];

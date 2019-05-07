@@ -8,6 +8,13 @@ services:
       - '@language_manager'
       - '@plugin.manager.dummy_data'
     calls:
-      - [setWmsinglesManager, ['@?wmsingles']]
+      - [setWmSinglesManager, ['@?wmsingles']]
+    tags:
+      - { name: drush.command }
+  wmdummy_data.commands.delete:
+    class: Drupal\wmdummy_data\Commands\DummyDeleteCommand
+    arguments:
+      - '@entity_type.manager'
+      - '@state'
     tags:
       - { name: drush.command }

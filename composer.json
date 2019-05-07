@@ -12,10 +12,11 @@
   "repositories": [
     {
       "type": "composer",
-      "url": "https://packagist.drupal-composer.org"
+      "url": "https://packages.drupal.org/8"
     }
   ],
   "require": {
+    "php": ">=7.2.0",
     "drupal/core": "^8",
     "fzaninotto/faker": "^1.8"
   },
