@@ -127,7 +127,7 @@ class LogoGenerator extends DummyDataBase
 
     public function generate(): array
     {
-        $entityArray = $this->dummyDataGenerator->generateReferencedEntity('media', 'image', 'default', 'en');
+        $entityArray = $this->dummyDataGenerator->generateReferencedEntity('media', 'image');
         $entityArray['title'] = $this->faker->sentence($this->faker->randomDigitNotNull);
         $entityArray['description'] = $this->faker->paragraph($this->faker->randomDigitNotNull);
 

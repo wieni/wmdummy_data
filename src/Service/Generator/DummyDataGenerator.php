@@ -61,7 +61,7 @@ class DummyDataGenerator
             $this->storeGeneratedEntityId($entityType, $entity);
 
             if (isset($this->wmContentManager)) {
-                if ($preset !== 'basic' && $this->getInstance($entityType, $bundle, $preset) instanceof ContentGenerateInterface) {
+                if ($preset !== DummyDataInterface::PRESET_BASIC && $this->getInstance($entityType, $bundle, $preset) instanceof ContentGenerateInterface) {
                     $contentPreset = $this->getInstance($entityType, $bundle, $preset)->generateContent();
                     $createdChildren = $this->generateSpecificContentBlocks($entity, $langcode, $contentPreset, $preset);
                 } else {
@@ -153,27 +153,49 @@ class DummyDataGenerator
         return $entityPreset;
     }
 
-    public function presetExists(string $entityType, string $bundle, string $preset, string $langcode): bool
+    public function presetExists(string $entityType, string $bundle, string $presetId, string $langcode): bool
     {
-        $presetIds = ["{$entityType}.{$bundle}.{$preset}"];
-        if ($preset === 'default') {
-            $presetIds[] = "{$entityType}.{$bundle}";
+        if ($presetId === DummyDataInterface::PRESET_BASIC) {
+            return true;
         }
 
-        $entityPresets = $this->dummyDataManager->getDefinitions();
-
-        foreach ($presetIds as $presetId) {
+        foreach ($this->getPresets() as $preset) {
             if (
-                isset($entityPresets[$presetId])
-                && (
-                    !isset($entityPresets[$presetId]['langcode']) ||
-                    $entityPresets[$presetId]['langcode'] === $langcode
-                )
+                $preset['entityType'] === $entityType
+                && $preset['bundle'] === $bundle
+                && $preset['langcode'] === $langcode
+                && $preset['preset'] === $presetId
             ) {
                 return true;
             }
         }
+
         return false;
+    }
+
+    public function getPresets(): array
+    {
+        $presets = [];
+        $entityPresets = $this->dummyDataManager->getDefinitions();
+
+        foreach ($entityPresets as $entityPreset) {
+            $presetArray = explode('.', $entityPreset['id']);
+
+            [$entityType, $bundle] = $presetArray;
+            $preset = $presetArray[2] ?? DummyDataInterface::PRESET_DEFAULT;
+            $id = "{$entityType}.{$bundle}.{$preset}";
+            $langcode = $entityPreset['langcode'] ?? $this->languageManager->getDefaultLanguage()->getId();
+
+            $presets[$id] = [
+                    'entityType' => $entityType,
+                    'bundle' => $bundle,
+                    'preset' => $preset,
+                    'id' => $id,
+                    'langcode' => $langcode,
+                ] + $entityPreset;
+        }
+
+        return $presets;
     }
 
     private function generateRandomContentBlocks(EntityInterface $entity, string $langcode, string $preset): int
@@ -256,9 +278,9 @@ class DummyDataGenerator
         if ($presetsExists) {
             return $this->getInstance($childEntityType, $childBundle, $parentPreset)->generate();
         }
-        $presetsExists = $this->presetExists($childEntityType, $childBundle, 'default', $langcode);
+        $presetsExists = $this->presetExists($childEntityType, $childBundle, DummyDataInterface::PRESET_DEFAULT, $langcode);
         if ($presetsExists) {
-            return $this->getInstance($childEntityType, $childBundle, 'default')->generate();
+            return $this->getInstance($childEntityType, $childBundle, DummyDataInterface::PRESET_DEFAULT)->generate();
         }
         return [];
     }
@@ -307,7 +329,7 @@ class DummyDataGenerator
         $this->state->set('wmdummy_data_keys', $keys);
     }
 
-    public function generateReferencedEntity(string $entityType, string $bundle, string $preset = 'default', string $langcode = null): array
+    public function generateReferencedEntity(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): array
     {
         if (!$langcode) {
             $langcode = $this->languageManager->getDefaultLanguage()->getId();
