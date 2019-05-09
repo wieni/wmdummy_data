@@ -3,6 +3,7 @@
 namespace Drupal\wmdummy_data;
 
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
 use Faker\Generator as Faker;
@@ -12,6 +13,8 @@ abstract class DummyDataBase extends PluginBase implements DummyDataInterface, C
 {
     /** @var Faker */
     protected $faker;
+    /** @var DummyDataGenerator */
+    protected $dummyDataGenerator;
 
     public function __construct(
         array $configuration,
@@ -23,18 +26,6 @@ abstract class DummyDataBase extends PluginBase implements DummyDataInterface, C
         parent::__construct($configuration, $pluginId, $pluginDefinition);
         $this->faker = $faker;
         $this->dummyDataGenerator = $dummyDataGenerator;
-    }
-
-    abstract public function generate(): array;
-
-    public function getKey(): string
-    {
-        return $this->pluginDefinition['id'];
-    }
-
-    public function getLangcode(): string
-    {
-        return $this->pluginDefinition['langcode'];
     }
 
     public static function create(
@@ -50,5 +41,39 @@ abstract class DummyDataBase extends PluginBase implements DummyDataInterface, C
             $container->get('wmdummy_data.faker'),
             $container->get('wmdummy_data.dummy_data_generator')
         );
+    }
+
+    abstract public function generate(): array;
+
+    public function getKey(): string
+    {
+        return $this->pluginDefinition['id'];
+    }
+
+    public function getLangcode(): string
+    {
+        return $this->pluginDefinition['langcode'];
+    }
+
+    public function generateEntity(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): array
+    {
+        $entity = $this->dummyDataGenerator->generateDummyData($entityType, $bundle, $preset, $langcode);
+
+        if ($entity instanceof ContentEntityInterface) {
+            return [
+                'entity' => $entity,
+            ];
+        }
+
+        return [];
+    }
+
+    public function nullable($value, int $chanceOfGettingTrue = 50)
+    {
+        if ($this->faker->boolean($chanceOfGettingTrue)) {
+            return $value;
+        }
+
+        return null;
     }
 }

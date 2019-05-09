@@ -5,6 +5,7 @@ namespace  Drupal\wmdummy_data\Commands;
 use Consolidation\AnnotatedCommand\AnnotationData;
 use Consolidation\AnnotatedCommand\CommandData;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -168,8 +169,12 @@ class DummyCreateCommands extends DrushCommands
         $this->logger()->success('Generating...');
 
         for ($x = 0; $x < $count; $x++) {
-            $created = $this->dummyDataGenerator->generateDummyData($entityType, $bundle, $preset, $langcode);
-            $this->logResult($created, $entityType, $bundle);
+            $createdContent = [];
+            $entity = $this->dummyDataGenerator->generateDummyData($entityType, $bundle, $preset, $langcode, $createdContent);
+
+            if ($entity instanceof ContentEntityInterface) {
+                $this->logResult($entity, $createdContent);
+            }
         }
 
         $this->logger()->success(
@@ -235,21 +240,17 @@ class DummyCreateCommands extends DrushCommands
         return true;
     }
 
-    protected function logResult( array $created, string $entityType, string $bundle): void
+    protected function logResult(ContentEntityInterface $entity, array $createdContent): void
     {
-        foreach ($created as $key => $bundlesAmount) {
-            $entity = $this->entityTypeManager->getStorage($entityType)->load($key);
-            $stringCreated = 'Generated entity '.$bundle.' with id '.$key.' and '.$bundlesAmount.' content blocks. '
-                . PHP_EOL
-                .'Further customisation can be done at the following url:'
-                . PHP_EOL
-                . $entity->toUrl('edit-form')
-                    ->setAbsolute(true)
-                    ->toString();
-            $this->logger()->success(
-                $stringCreated
-            );
-        }
+        $this->logger()->success(
+            'Generated entity '.$entity->bundle().' with id '.$entity->id().' and '.count($createdContent).' content blocks. '
+            . PHP_EOL
+            .'Further customisation can be done at the following url:'
+            . PHP_EOL
+            . $entity->toUrl('edit-form')
+                ->setAbsolute(true)
+                ->toString()
+        );
     }
 
     protected function getLangcode(): string

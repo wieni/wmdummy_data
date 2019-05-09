@@ -124,7 +124,7 @@ trait HtmlTextCreateTrait
             '<a href="%s"> %s </a>',
             $this->faker->url,
             $this->faker->sentence($this->faker->randomDigitNotNull)
-            );
+        );
 
         return $link;
     }
@@ -149,7 +149,7 @@ trait HtmlTextCreateTrait
                 $this->faker->sentence($this->faker->randomDigitNotNull),
                 $this->faker->word,
                 $this->faker->sentence($this->faker->randomDigitNotNull)
-                ),
+            ),
             sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
             '</tr>',
             '<tr>',
