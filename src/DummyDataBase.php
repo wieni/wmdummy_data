@@ -5,12 +5,15 @@ namespace Drupal\wmdummy_data;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\wmdummy_data\Faker\Provider\DrupalEntity;
+use Drupal\wmdummy_data\Faker\Provider\RandomElementWeight;
+use Drupal\wmdummy_data\Faker\Provider\VimeoVideo;
+use Drupal\wmdummy_data\Faker\Provider\YouTubeVideo;
 use Faker\Generator as Faker;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 abstract class DummyDataBase extends PluginBase implements DummyDataInterface, ContainerFactoryPluginInterface
 {
-    /** @var Faker|DrupalEntity */
+    /** @var Faker|DrupalEntity|RandomElementWeight|YouTubeVideo|VimeoVideo */
     protected $faker;
 
     public function __construct(

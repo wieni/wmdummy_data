@@ -7,6 +7,9 @@ use Drupal\Core\Config\ImmutableConfig;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\wmdummy_data\Faker\Provider\DrupalEntity;
+use Drupal\wmdummy_data\Faker\Provider\RandomElementWeight;
+use Drupal\wmdummy_data\Faker\Provider\VimeoVideo;
+use Drupal\wmdummy_data\Faker\Provider\YouTubeVideo;
 use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
 use Faker\Generator;
 use Faker\Factory as FactoryBase;
@@ -45,6 +48,24 @@ class Factory
                 $this->entityTypeManager,
                 $this->languageManager,
                 $this->dummyDataGenerator
+            )
+        );
+
+        $generator->addProvider(
+            new RandomElementWeight(
+                $generator
+            )
+        );
+
+        $generator->addProvider(
+            new VimeoVideo(
+                $generator
+            )
+        );
+
+        $generator->addProvider(
+            new YouTubeVideo(
+                $generator
             )
         );
 
