@@ -47,6 +47,10 @@ class DrupalEntity extends Base
 
     public function drupalEntities(string $entityType, string $bundle, int $amount, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): array
     {
+        if ($amount === 0) {
+            return [];
+        }
+
         if ($this->generator->boolean($chanceOfCreatingNewEntity)) {
             return $this->getNewEntities($amount, $entityType, $bundle, $preset, $langcode);
         }
