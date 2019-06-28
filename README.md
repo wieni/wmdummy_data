@@ -42,14 +42,26 @@ class SomeGenerator extends DummyDataBase
 
 ## Annotations 
 ### ID 
-To make sure the generator file can be used for the entity, make sure the generator ID is named after the **entity type** and **bundle** of the entity. (see example below)
-The last section of the id, is the name of the preset. This allows multiple generators for the same entity. 
-In case the preset id does not contain a preset name, it will be considered a default.
+To map the generator to the right bundle, you can provide three attributes:
+- entity_type
+- bundle
+- preset (optional, allows multiple generators for the same bundle. The default value is `default`)
 
 ```
 /**
  * @DummyData(
- *   id = "node.page.default",
+ *   entity_type = "node",
+ *   bundle = "page"
+ * )
+ */
+```
+
+Alternatively, you can provide an `id` attribute with the entity type, bundle and optionally a preset joined by a dot.
+
+```
+/**
+ * @DummyData(
+ *   id = "node.page.special",
  * )
  */
 ```
