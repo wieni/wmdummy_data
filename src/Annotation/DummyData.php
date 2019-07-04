@@ -2,6 +2,7 @@
 namespace Drupal\wmdummy_data\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
+use Drupal\wmdummy_data\DummyDataInterface;
 
 /**
  * @Annotation
@@ -13,7 +14,7 @@ class DummyData extends Plugin
     /** @var string */
     public $bundle;
     /** @var string */
-    public $preset = 'default';
+    public $preset = DummyDataInterface::PRESET_DEFAULT;
     /** @var string */
     public $langcode;
 
