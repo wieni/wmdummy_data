@@ -181,7 +181,7 @@ class DummyDataGenerator
 
         foreach ($this->getPresets() as $preset) {
             if (
-                $preset['entityType'] === $entityType
+                $preset['entity_type'] === $entityType
                 && $preset['bundle'] === $bundle
                 && $preset['langcode'] === $langcode
                 && $preset['preset'] === $presetId
@@ -195,27 +195,28 @@ class DummyDataGenerator
 
     public function getPresets(): array
     {
-        $presets = [];
-        $entityPresets = $this->dummyDataManager->getDefinitions();
+        $presets = $this->dummyDataManager->getDefinitions();
 
-        foreach ($entityPresets as $entityPreset) {
-            $presetArray = explode('.', $entityPreset['id']);
+        foreach ($presets as &$preset) {
+            if (isset($preset['id'])) {
+                @trigger_error('The DummyData plugin id attribute is @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0. Use the entity_type, bundle and preset attributes instead.', E_USER_DEPRECATED);
 
-            [$entityType, $bundle] = $presetArray;
-            $preset = $presetArray[2] ?? DummyDataInterface::PRESET_DEFAULT;
-            $id = "{$entityType}.{$bundle}.{$preset}";
-            $langcode = $entityPreset['langcode'] ?? $this->languageManager->getDefaultLanguage()->getId();
+                $parts = explode('.', $preset['id']);
+                unset($preset['id']);
 
-            $presets[$id] = [
-                    'entityType' => $entityType,
-                    'bundle' => $bundle,
-                    'preset' => $preset,
-                    'id' => $id,
-                    'langcode' => $langcode,
-                ] + $entityPreset;
+                foreach (['entity_type', 'bundle', 'preset'] as $i => $partName) {
+                    if (!isset($preset[$partName])) {
+                        $preset[$partName] = $parts[$i];
+                    }
+                }
+            }
+
+            if (!isset($preset['langcode'])) {
+                $preset['langcode'] = $this->languageManager->getDefaultLanguage()->getId();
+            }
         }
 
-        return $presets;
+        return array_values($presets);
     }
 
     private function generateRandomContentBlocks(EntityInterface $entity, string $langcode, string $preset): array

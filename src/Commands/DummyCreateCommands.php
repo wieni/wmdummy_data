@@ -203,7 +203,7 @@ class DummyCreateCommands extends DrushCommands
         $presets = array_filter(
             $this->dummyDataGenerator->getPresets(),
             function (array $preset) use ($entityType, $bundle, $langcode) {
-                return $preset['entityType'] === $entityType
+                return $preset['entity_type'] === $entityType
                     && $preset['bundle'] === $bundle
                     && $preset['langcode'] === $langcode;
             }

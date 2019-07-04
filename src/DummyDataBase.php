@@ -42,13 +42,30 @@ abstract class DummyDataBase extends PluginBase implements DummyDataInterface, C
 
     abstract public function generate(): array;
 
+    /**
+     * @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0.
+     *   Use DummyDataBase::getEntityType(), DummyDataBase::getBundle()
+     *   or DummyDataBase::getPreset() instead.
+     */
     public function getKey(): string
     {
+        @trigger_error('DummyDataBase::getKey() is @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0. Use DummyDataBase::getEntityType(), DummyDataBase::getBundle() or DummyDataBase::getPreset() instead.', E_USER_DEPRECATED);
+
+        if (isset($this->definition['entity_type'], $this->definition['bundle'])) {
+            return implode('.', [
+                $this->pluginDefinition['entity_type'],
+                $this->pluginDefinition['bundle'],
+                $this->pluginDefinition['preset'],
+            ]);
+        }
+
         return $this->pluginDefinition['id'];
     }
 
     public function getLangcode(): string
     {
-        return $this->pluginDefinition['langcode'];
+        @trigger_error('DummyDataBase::getLangcode() is @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0.', E_USER_DEPRECATED);
+
+        return $this->pluginDefinition['langcode'] ?? null;
     }
 }
