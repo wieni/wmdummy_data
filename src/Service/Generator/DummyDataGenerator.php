@@ -232,7 +232,7 @@ class DummyDataGenerator
         }
 
         foreach ($containers as $container) {
-            $childBundles = $container->getChildBundles();
+            $childBundles = $container->getChildBundles() ?: $container->getChildBundlesAll();
             $childEntityType = $container->getChildEntityType();
             $entityContainer = $container->id;
             $entityStorage = $this->entityTypeManager->getStorage($childEntityType);
