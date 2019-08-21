@@ -243,7 +243,7 @@ class DummyDataGenerator
                     continue;
                 }
 
-                $count = random_int(1, 7);
+                $count = random_int(1, 3);
 
                 for ($x = 0; $x < $count; $x++) {
                     $entityPreset = $this->getChildPreset($childEntityType, $childBundle, $preset, $langcode);

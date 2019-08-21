@@ -66,6 +66,9 @@ class DrupalEntity extends Base
 
     protected function getNewEntities(int $amount, string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): array
     {
+        if ($amount === 0) {
+            return [];
+        }
         return array_map(
             function () use ($entityType, $bundle, $preset, $langcode) {
                 return $this->dummyDataGenerator->generateDummyData(
