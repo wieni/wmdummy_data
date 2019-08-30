@@ -1,4 +1,5 @@
 <?php
+
 namespace Drupal\wmdummy_data\Annotation;
 
 use Drupal\Component\Annotation\Plugin;
