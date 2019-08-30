@@ -11,6 +11,7 @@ use Drupal\Core\State\StateInterface;
 use Drupal\wmdummy_data\DummyDataInterface;
 use Drupal\wmdummy_data\DummyDataManager;
 use Drupal\wmdummy_data\Event\DummyDataCreateEvent;
+use Drupal\wmdummy_data\Event\DummyDataPreSaveEvent;
 use Drupal\wmdummy_data\WmDummyDataEvents;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -58,6 +59,12 @@ class DummyDataGenerator
         $entityPreset = $generator->generate();
         $entityPreset = $this->addBaseFields($entityPreset, $entityType, $bundle, $langcode);
         $entity = $entityStorage->createWithSampleValues($bundle, $entityPreset);
+
+        $this->eventDispatcher->dispatch(
+            WmDummyDataEvents::DUMMY_DATA_PRE_SAVE,
+            new DummyDataPreSaveEvent($entity, $generator)
+        );
+
         $entity->save();
         $this->storeGeneratedEntityId($entityType, $entity);
 
