@@ -138,19 +138,6 @@ class DummyDataGenerator
         $presets = $this->dummyDataManager->getDefinitions();
 
         foreach ($presets as &$preset) {
-            if (isset($preset['id'])) {
-                @trigger_error('The DummyData plugin id attribute is @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0. Use the entity_type, bundle and preset attributes instead.', E_USER_DEPRECATED);
-
-                $parts = explode('.', $preset['id']);
-                unset($preset['id']);
-
-                foreach (['entity_type', 'bundle', 'preset'] as $i => $partName) {
-                    if (!isset($preset[$partName])) {
-                        $preset[$partName] = $parts[$i];
-                    }
-                }
-            }
-
             if (!isset($preset['langcode'])) {
                 $preset['langcode'] = $this->languageManager->getDefaultLanguage()->getId();
             }

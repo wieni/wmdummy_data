@@ -18,16 +18,4 @@ interface DummyDataInterface extends PluginInspectionInterface
     public const PRESET_DEFAULT = 'default';
 
     public function generate(): array;
-
-    /**
-     * @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0.
-     */
-    public function getLangcode(): string;
-
-    /**
-     * @deprecated in wmdummy_data:1.3.0 and is removed from wmdummy_data:2.0.0.
-     *   Use DummyDataBase::getEntityType(), DummyDataBase::getBundle()
-     *   or DummyDataBase::getPreset() instead.
-     */
-    public function getKey(): string;
 }
