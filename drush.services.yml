@@ -8,6 +8,7 @@ services:
       - '@language_manager'
       - '@plugin.manager.dummy_data'
     calls:
+      - [setWmContentManager, ['@?wmcontent.manager']]
       - [setWmSinglesManager, ['@?wmsingles']]
     tags:
       - { name: drush.command }

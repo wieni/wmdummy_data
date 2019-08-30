@@ -9,6 +9,8 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
+use Drupal\wmcontent\Entity\WmContentContainer;
+use Drupal\wmcontent\WmContentManager;
 use Drupal\wmdummy_data\DummyDataInterface;
 use Drupal\wmdummy_data\DummyDataManager;
 use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
@@ -28,6 +30,8 @@ class DummyCreateCommands extends DrushCommands
     protected $entityTypeManager;
     /** @var LanguageManagerInterface */
     protected $languageManager;
+    /** @var WmContentManager */
+    protected $wmContentManager;
     /** @var wmSingles */
     protected $wmSingles;
     /** @var DummyDataManager */
@@ -45,6 +49,11 @@ class DummyCreateCommands extends DrushCommands
         $this->entityTypeManager = $entityTypeManager;
         $this->languageManager = $languageManager;
         $this->dummyDataManager = $dummyDataManager;
+    }
+
+    public function setWmContentManager(WmContentManager $wmContentManager): void
+    {
+        $this->wmContentManager = $wmContentManager;
     }
 
     public function setWmSinglesManager(wmSingles $wmSingles): void
@@ -169,11 +178,10 @@ class DummyCreateCommands extends DrushCommands
         $this->logger()->success('Generating...');
 
         for ($x = 0; $x < $count; $x++) {
-            $createdContent = [];
-            $entity = $this->dummyDataGenerator->generateDummyData($entityType, $bundle, $preset, $langcode, $createdContent);
+            $entity = $this->dummyDataGenerator->generateDummyData($entityType, $bundle, $preset, $langcode);
 
             if ($entity instanceof ContentEntityInterface) {
-                $this->logResult($entity, $createdContent);
+                $this->logResult($entity);
             }
         }
 
@@ -240,10 +248,18 @@ class DummyCreateCommands extends DrushCommands
         return true;
     }
 
-    protected function logResult(ContentEntityInterface $entity, array $createdContent): void
+    protected function logResult(ContentEntityInterface $entity): void
     {
+        $createdContent = array_reduce(
+            $this->wmContentManager->getHostContainers($entity),
+            function (int $count, WmContentContainer $container) use ($entity) {
+                return $count + count($this->wmContentManager->getContent($entity, $container->id()));
+            },
+            0
+        );
+
         $this->logger()->success(
-            'Generated entity '.$entity->bundle().' with id '.$entity->id().' and '.count($createdContent).' content blocks. '
+            'Generated entity '.$entity->bundle().' with id '.$entity->id().' and '.$createdContent.' content blocks. '
             . PHP_EOL
             .'Further customisation can be done at the following url:'
             . PHP_EOL

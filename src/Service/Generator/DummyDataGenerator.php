@@ -45,7 +45,7 @@ class DummyDataGenerator
         $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function generateDummyData(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null, array &$createdContent = []): ?ContentEntityInterface
+    public function generateDummyData(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): ?ContentEntityInterface
     {
         $langcode = $langcode ?? $this->languageManager->getDefaultLanguage()->getId();
         $entityStorage = $this->entityTypeManager->getStorage($entityType);
