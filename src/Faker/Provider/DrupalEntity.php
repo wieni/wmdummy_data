@@ -84,6 +84,10 @@ class DrupalEntity extends Base
 
     protected function getExistingEntities(int $amount, string $entityType, string $bundle, string $langcode = null): array
     {
+        if ($amount === 0) {
+            return [];
+        }
+
         $langcode = $langcode ?? $this->languageManager->getDefaultLanguage()->getId();
         $typeDefinition = $this->entityTypeManager->getDefinition($entityType);
         $storage = $this->entityTypeManager->getStorage($entityType);
