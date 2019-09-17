@@ -146,6 +146,51 @@ class DummyDataGenerator
         return array_values($presets);
     }
 
+    public function deleteGeneratedEntities(string $entityType): int
+    {
+        $key = "wmdummy_data.{$entityType}";
+
+        if (!($ids = $this->state->get($key))) {
+            return 0;
+        }
+
+        $storage = $this->entityTypeManager->getStorage($entityType);
+        $toDeleteEntities = $storage->loadMultiple($ids);
+        $storage->delete($toDeleteEntities);
+
+        $this->state->delete($key);
+
+        return count($ids);
+    }
+
+    public function getGeneratedEntityIds(string $entityType = null): array
+    {
+        if ($entityType) {
+            $keys = ["wmdummy_data.{$entityType}"];
+        } else {
+            $keys = $this->state->get('wmdummy_data_keys', []);
+        }
+
+        return array_reduce(
+            $keys,
+            function (array $ids, string $key) {
+                return $ids + $this->state->get($key, []);
+            },
+            []
+        );
+    }
+
+    public function getGeneratedEntityTypes(): array
+    {
+        return array_map(
+            function (string $key) {
+                [, $entityType] = explode('.', $key);
+                return $entityType;
+            },
+            $this->state->get('wmdummy_data_keys', [])
+        );
+    }
+
     private function storeGeneratedEntityId(string $entityType, $entity): void
     {
         $key = "wmdummy_data.{$entityType}";

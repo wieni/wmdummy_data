@@ -1,0 +1,9 @@
+wmdummy_data.overview:
+    path: '/admin/config/development/wmdummy-data'
+    defaults:
+        _form: 'Drupal\wmdummy_data\Form\OverviewForm'
+        _title: 'Dummy data'
+    requirements:
+        _permission: 'generate dummy data+delete dummy data'
+    options:
+        _admin_route: TRUE

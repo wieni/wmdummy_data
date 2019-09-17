@@ -1,0 +1,5 @@
+generate dummy data:
+    title: 'Generate dummy data'
+
+delete dummy data:
+    title: 'Delete dummy data'

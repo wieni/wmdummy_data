@@ -1,0 +1,4 @@
+wmdummy_data.overview:
+    title: 'Dummy data'
+    route_name: wmdummy_data.overview
+    parent: system.admin_config_development
