@@ -34,21 +34,17 @@ class DummyCreateCommands extends DrushCommands
     protected $wmContentManager;
     /** @var wmSingles */
     protected $wmSingles;
-    /** @var DummyDataManager */
-    protected $dummyDataManager;
 
     public function __construct(
         EntityTypeBundleInfo $entityTypeBundleInfo,
         DummyDataGenerator $dummyDataGenerator,
         EntityTypeManagerInterface $entityTypeManager,
-        LanguageManagerInterface $languageManager,
-        DummyDataManager $dummyDataManager
+        LanguageManagerInterface $languageManager
     ) {
         $this->entityTypeBundleInfo = $entityTypeBundleInfo;
         $this->dummyDataGenerator = $dummyDataGenerator;
         $this->entityTypeManager = $entityTypeManager;
         $this->languageManager = $languageManager;
-        $this->dummyDataManager = $dummyDataManager;
     }
 
     public function setWmContentManager(WmContentManager $wmContentManager): void
@@ -148,6 +144,7 @@ class DummyCreateCommands extends DrushCommands
             );
         }
 
+        // TODO: Do general entity access check instead
         if (
             isset($this->wmSingles)
             && $entityType === 'node'
@@ -278,5 +275,4 @@ class DummyCreateCommands extends DrushCommands
 
         return $langcode;
     }
-
 }
