@@ -2,56 +2,53 @@
 
 namespace  Drupal\wmdummy_data\Commands;
 
-use Drupal\Core\Entity\EntityTypeManager;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\State\StateInterface;
+use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
 use Drush\Commands\DrushCommands;
 
 class DummyDeleteCommand extends DrushCommands
 {
-    /** @var EntityTypeManagerInterface */
-    protected $entityTypeManager;
-    /** @var StateInterface */
-    protected $state;
+    /** @var DummyDataGenerator */
+    protected $dummyDataGenerator;
 
     public function __construct(
-        EntityTypeManager $entityTypeManager,
-        StateInterface $state
+        DummyDataGenerator $dummyDataGenerator
     ) {
-        $this->entityTypeManager = $entityTypeManager;
-        $this->state = $state;
+        $this->dummyDataGenerator = $dummyDataGenerator;
     }
 
     /**
+     * Command to delete generated entities
+     *
      * @command wmdummy-data:delete
      * @aliases kill-dummies
+     *
+     * @param string $entityType
+     *      Name of bundle to attach fields to.
+     *
+     * @usage drush wmdummy-data:delete all
+     * @usage drush wmdummy-data:delete entity-type
      */
-    public function delete(): void
+    public function delete(string $entityType): void
     {
-        $keys = $this->state->get('wmdummy_data_keys', []);
+        $totalCount = 0;
 
-        foreach ($keys as $k) {
-            if (!$this->state->get($k)) {
-                continue;
-            }
-
-            $ids = $this->state->get($k);
-            $idsCount = count($ids);
-
-            [, $entityType] = explode('.', $k);
-
-            $storage = $this->entityTypeManager->getStorage($entityType);
-
-            $toDeleteEntities = $storage->loadMultiple($ids);
-            $storage->delete($toDeleteEntities);
-
-            $this->logger()->success(
-                "Successfully destroyed {$idsCount} dummies for entity {$entityType}."
-            );
-
-            $this->state->delete($k);
+        if ($entityType === 'all') {
+            $entityTypes = $this->dummyDataGenerator->getGeneratedEntityTypes();
+        } else {
+            $entityTypes = [$entityType];
         }
 
-        $this->logger()->success(sprintf('%d dummy entities have been annihilated.', count($keys)));
+        foreach ($entityTypes as $entityType) {
+            $count = $this->dummyDataGenerator->deleteGeneratedEntities($entityType);
+            $totalCount += $count;
+
+            $this->logger()->success(
+                "Successfully destroyed {$count} dummies for entity {$entityType}."
+            );
+        }
+
+        $this->logger()->success(
+            "{$totalCount} dummy entities have been annihilated."
+        );
     }
 }

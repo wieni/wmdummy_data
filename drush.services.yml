@@ -12,10 +12,10 @@ services:
       - [setWmSinglesManager, ['@?wmsingles']]
     tags:
       - { name: drush.command }
+
   wmdummy_data.commands.delete:
     class: Drupal\wmdummy_data\Commands\DummyDeleteCommand
     arguments:
-      - '@entity_type.manager'
-      - '@state'
+      - '@wmdummy_data.dummy_data_generator'
     tags:
       - { name: drush.command }
