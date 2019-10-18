@@ -17,6 +17,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class DummyDataGenerator
 {
+    protected const RECURSION_LIMIT = 50;
+
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
     /** @var EntityFieldManagerInterface */
@@ -48,6 +50,12 @@ class DummyDataGenerator
 
     public function generateDummyData(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): ?ContentEntityInterface
     {
+        static $recursionTracker = 0;
+
+        if ($recursionTracker > self::RECURSION_LIMIT) {
+            throw new \RuntimeException('Recursion detected while generating dummy data. Try again or check your generator implementations.');
+        }
+
         $langcode = $langcode ?? $this->languageManager->getDefaultLanguage()->getId();
         $entityStorage = $this->entityTypeManager->getStorage($entityType);
 
@@ -55,6 +63,7 @@ class DummyDataGenerator
             return null;
         }
 
+        $recursionTracker++;
         $generator = $this->dummyDataManager->createInstance("{$entityType}.{$bundle}.{$preset}");
         $entityPreset = $generator->generate();
         $entityPreset = $this->addBaseFields($entityPreset, $entityType, $bundle, $langcode);
@@ -73,6 +82,7 @@ class DummyDataGenerator
             new DummyDataCreateEvent($entity, $generator)
         );
 
+        $recursionTracker--;
         return $entity;
     }
 
