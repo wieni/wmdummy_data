@@ -179,6 +179,27 @@ class OverviewForm extends FormBase
         ];
     }
 
+    public function validateForm(array &$form, FormStateInterface $formState)
+    {
+        $name = $formState->getTriggeringElement()['#name'];
+
+        if ($name === 'generate') {
+            if ($formState->getValue('amount') === '') {
+                $formState->setErrorByName('amount', 'You have to specify an amount.');
+            }
+
+            if ($formState->getValue('generator') === '') {
+                $formState->setErrorByName('generator', 'You have to specify a generator.');
+            }
+        }
+
+        if ($name === 'delete') {
+            if ($formState->getValue('entity_type') === '') {
+                $formState->setErrorByName('entity_type', 'You have to specify an entity type.');
+            }
+        }
+    }
+
     public function submitForm(array &$form, FormStateInterface $formState)
     {
     }
