@@ -24,7 +24,7 @@ trait HtmlTextCreateTrait
             $this->createTaggedString(),
             $this->createOrdenedList(),
             $this->createUnordenedList(),
-            $this->createTable()
+            $this->createTable(),
         ];
         return implode(PHP_EOL, $textPieces);
     }
@@ -157,7 +157,7 @@ trait HtmlTextCreateTrait
             sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
             sprintf('<td>%s</td>', $this->faker->sentence($this->faker->randomDigitNotNull)),
             '</tr>',
-            '</tbody></table>'
+            '</tbody></table>',
         ];
 
         return implode(PHP_EOL, $tablePieces);

@@ -31,7 +31,7 @@ class DrupalEntity extends Base
         $this->dummyDataGenerator = $dummyDataGenerator;
     }
 
-    public function drupalEntity(string $entityType, string $bundle, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): EntityInterface
+    public function drupalEntity(string $entityType, string $bundle, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, ?string $langcode = null): EntityInterface
     {
         $entities = $this->drupalEntities(
             $entityType,
@@ -45,7 +45,7 @@ class DrupalEntity extends Base
         return reset($entities);
     }
 
-    public function drupalEntities(string $entityType, string $bundle, int $amount, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): array
+    public function drupalEntities(string $entityType, string $bundle, int $amount, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, ?string $langcode = null): array
     {
         if ($amount === 0) {
             return [];
@@ -64,7 +64,7 @@ class DrupalEntity extends Base
         );
     }
 
-    protected function getNewEntities(int $amount, string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): array
+    protected function getNewEntities(int $amount, string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, ?string $langcode = null): array
     {
         if ($amount === 0) {
             return [];
@@ -82,7 +82,7 @@ class DrupalEntity extends Base
         );
     }
 
-    protected function getExistingEntities(int $amount, string $entityType, string $bundle, string $langcode = null): array
+    protected function getExistingEntities(int $amount, string $entityType, string $bundle, ?string $langcode = null): array
     {
         if ($amount === 0) {
             return [];

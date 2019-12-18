@@ -77,6 +77,69 @@ class OverviewForm extends FormBase
         return $form;
     }
 
+    public function validateForm(array &$form, FormStateInterface $formState)
+    {
+        $name = $formState->getTriggeringElement()['#name'];
+
+        if ($name === 'generate') {
+            if ($formState->getValue('amount') === '') {
+                $formState->setErrorByName('amount', 'You have to specify an amount.');
+            }
+
+            if ($formState->getValue('generator') === '') {
+                $formState->setErrorByName('generator', 'You have to specify a generator.');
+            }
+        }
+
+        if ($name === 'delete') {
+            if ($formState->getValue('entity_type') === '') {
+                $formState->setErrorByName('entity_type', 'You have to specify an entity type.');
+            }
+        }
+    }
+
+    public function submitForm(array &$form, FormStateInterface $formState)
+    {
+    }
+
+    public function generate(array &$form, FormStateInterface $formState): void
+    {
+        [$entityType, $bundle, $preset] = explode('.', $formState->getValue('generator'));
+        $amount = $formState->getValue('amount');
+        $generated = 0;
+
+        while ($generated < $amount) {
+            try {
+                $this->generator->generateDummyData($entityType, $bundle, $preset);
+            } catch (\Exception $e) {
+                $this->messenger->addError("An error occurred while generating: {$e->getMessage()}");
+                break;
+            }
+            $generated++;
+        }
+
+        $this->messenger->addStatus("Successfully made {$generated} dummies for {$entityType} {$bundle} with preset {$preset}.");
+    }
+
+    public function delete(array &$form, FormStateInterface $formState): void
+    {
+        $entityType = $formState->getValue('entity_type');
+
+        if ($entityType === 'all') {
+            $entityTypes = $this->generator->getGeneratedEntityTypes();
+        } else {
+            $entityTypes = [$entityType];
+        }
+
+        foreach ($entityTypes as $entityType) {
+            $count = $this->generator->deleteGeneratedEntities($entityType);
+
+            $this->messenger->addStatus(
+                "Successfully destroyed {$count} dummies for entity type {$entityType}."
+            );
+        }
+    }
+
     protected function buildGenerateForm(array &$form)
     {
         $options = array_reduce(
@@ -155,7 +218,7 @@ class OverviewForm extends FormBase
                                 '@entityType (1 entity)',
                                 '@entityType (@count entities)',
                                 ['@entityType' => $entityType->getLabel()]
-                            )
+                            ),
                         ];
                 },
                 [
@@ -163,7 +226,7 @@ class OverviewForm extends FormBase
                         count($this->generator->getGeneratedEntityIds()),
                         'All (1 entity)',
                         'All (@count entities)'
-                    )
+                    ),
                 ]
             ),
         ];
@@ -177,68 +240,5 @@ class OverviewForm extends FormBase
                 [$this, 'delete'],
             ],
         ];
-    }
-
-    public function validateForm(array &$form, FormStateInterface $formState)
-    {
-        $name = $formState->getTriggeringElement()['#name'];
-
-        if ($name === 'generate') {
-            if ($formState->getValue('amount') === '') {
-                $formState->setErrorByName('amount', 'You have to specify an amount.');
-            }
-
-            if ($formState->getValue('generator') === '') {
-                $formState->setErrorByName('generator', 'You have to specify a generator.');
-            }
-        }
-
-        if ($name === 'delete') {
-            if ($formState->getValue('entity_type') === '') {
-                $formState->setErrorByName('entity_type', 'You have to specify an entity type.');
-            }
-        }
-    }
-
-    public function submitForm(array &$form, FormStateInterface $formState)
-    {
-    }
-
-    public function generate(array &$form, FormStateInterface $formState): void
-    {
-        [$entityType, $bundle, $preset] = explode('.', $formState->getValue('generator'));
-        $amount = $formState->getValue('amount');
-        $generated = 0;
-
-        while ($generated < $amount) {
-            try {
-                $this->generator->generateDummyData($entityType, $bundle, $preset);
-            } catch (\Exception $e) {
-                $this->messenger->addError("An error occurred while generating: {$e->getMessage()}");
-                break;
-            }
-            $generated++;
-        }
-
-        $this->messenger->addStatus("Successfully made {$generated} dummies for {$entityType} {$bundle} with preset {$preset}.");
-    }
-
-    public function delete(array &$form, FormStateInterface $formState): void
-    {
-        $entityType = $formState->getValue('entity_type');
-
-        if ($entityType === 'all') {
-            $entityTypes = $this->generator->getGeneratedEntityTypes();
-        } else {
-            $entityTypes = [$entityType];
-        }
-
-        foreach ($entityTypes as $entityType) {
-            $count = $this->generator->deleteGeneratedEntities($entityType);
-
-            $this->messenger->addStatus(
-                "Successfully destroyed {$count} dummies for entity type {$entityType}."
-            );
-        }
     }
 }

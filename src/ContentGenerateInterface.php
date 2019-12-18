@@ -12,7 +12,6 @@ interface ContentGenerateInterface
      * every parent container of this entity. If no children should be generated,
      * just return an empty array.
      *
-     * @param WmContentContainer $container
      * @return EntityInterface[]
      */
     public function generateContent(WmContentContainer $container): array;

@@ -12,9 +12,7 @@ interface DummyDataInterface extends PluginInspectionInterface
      */
     public const PRESET_BASIC = 'basic';
 
-    /**
-     * The default preset, used if the preset part of the plugin ID is left out.
-     */
+    /** The default preset, used if the preset part of the plugin ID is left out. */
     public const PRESET_DEFAULT = 'default';
 
     public function generate(): array;

@@ -10,7 +10,6 @@ class RandomElementWeight extends Base
      * Picks a random element by weight
      * @see https://stackoverflow.com/a/4726300/2637528
      *
-     * @param array $values
      * @return mixed
      * @throws \Exception
      */

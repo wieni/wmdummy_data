@@ -48,7 +48,7 @@ class DummyDataGenerator
         $this->eventDispatcher = $eventDispatcher;
     }
 
-    public function generateDummyData(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, string $langcode = null): ?ContentEntityInterface
+    public function generateDummyData(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_DEFAULT, ?string $langcode = null): ?ContentEntityInterface
     {
         static $recursionTracker = 0;
 
@@ -84,43 +84,6 @@ class DummyDataGenerator
 
         $recursionTracker--;
         return $entity;
-    }
-
-    private function addBaseFields(array $entityPreset, string $entityType, string $bundle, string $langcode): array
-    {
-        $entityDefinition = $this->entityTypeManager->getDefinition($entityType);
-        $entityFieldDefinition = $this->entityFieldManager->getFieldDefinitions($entityType, $bundle);
-
-        if (
-            $entityDefinition->hasKey('langcode')
-            && ($key = $entityDefinition->getKey('langcode'))
-            && isset($entityFieldDefinition[$key])
-            && !isset($entityPreset[$key])
-        ) {
-            $entityPreset[$key] = $langcode;
-        }
-
-        /**
-         * TODO: Remove this if issue is fixed
-         * @see https://www.drupal.org/project/drupal/issues/2915034
-         */
-        if (
-            $entityDefinition->hasKey('default_langcode')
-            && ($key = $entityDefinition->getKey('default_langcode'))
-            && isset($entityFieldDefinition[$key])
-            && !isset($entityPreset[$key])
-        ) {
-            $entityPreset[$key] = true;
-        }
-
-        if (
-            isset($entityFieldDefinition['content_translation_source'])
-            && !isset($entityPreset['content_translation_source'])
-        ) {
-            $entityPreset['content_translation_source'] = 'und';
-        }
-
-        return $entityPreset;
     }
 
     public function presetExists(string $entityType, string $bundle, string $presetId, string $langcode): bool
@@ -173,7 +136,7 @@ class DummyDataGenerator
         return count($ids);
     }
 
-    public function getGeneratedEntityIds(string $entityType = null): array
+    public function getGeneratedEntityIds(?string $entityType = null): array
     {
         if ($entityType) {
             $keys = ["wmdummy_data.{$entityType}"];
@@ -199,6 +162,43 @@ class DummyDataGenerator
             },
             $this->state->get('wmdummy_data_keys', [])
         );
+    }
+
+    private function addBaseFields(array $entityPreset, string $entityType, string $bundle, string $langcode): array
+    {
+        $entityDefinition = $this->entityTypeManager->getDefinition($entityType);
+        $entityFieldDefinition = $this->entityFieldManager->getFieldDefinitions($entityType, $bundle);
+
+        if (
+            $entityDefinition->hasKey('langcode')
+            && ($key = $entityDefinition->getKey('langcode'))
+            && isset($entityFieldDefinition[$key])
+            && !isset($entityPreset[$key])
+        ) {
+            $entityPreset[$key] = $langcode;
+        }
+
+        /**
+         * TODO: Remove this if issue is fixed
+         * @see https://www.drupal.org/project/drupal/issues/2915034
+         */
+        if (
+            $entityDefinition->hasKey('default_langcode')
+            && ($key = $entityDefinition->getKey('default_langcode'))
+            && isset($entityFieldDefinition[$key])
+            && !isset($entityPreset[$key])
+        ) {
+            $entityPreset[$key] = true;
+        }
+
+        if (
+            isset($entityFieldDefinition['content_translation_source'])
+            && !isset($entityPreset['content_translation_source'])
+        ) {
+            $entityPreset['content_translation_source'] = 'und';
+        }
+
+        return $entityPreset;
     }
 
     private function storeGeneratedEntityId(string $entityType, $entity): void

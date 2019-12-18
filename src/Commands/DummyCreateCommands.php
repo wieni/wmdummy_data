@@ -12,13 +12,12 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\wmcontent\Entity\WmContentContainer;
 use Drupal\wmcontent\WmContentManager;
 use Drupal\wmdummy_data\DummyDataInterface;
-use Drupal\wmdummy_data\DummyDataManager;
 use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
+use Drupal\wmsingles\Service\WmSingles;
 use Drush\Commands\DrushCommands;
 use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Drupal\wmsingles\Service\WmSingles;
 
 class DummyCreateCommands extends DrushCommands
 {
@@ -69,7 +68,6 @@ class DummyCreateCommands extends DrushCommands
      *      Type of entity (e.g. node, user, comment).
      * @param string $preset
      *      Preset used to generate the content.
-     * @param array $options
      * @option count
      *      Amount of entities that should be made.
      * @option langcode
@@ -82,12 +80,11 @@ class DummyCreateCommands extends DrushCommands
     public function generate(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_BASIC, array $options = [
         'count' => '1',
         'langcode' => '',
-    ]): void {
+    ]): void
+    {
     }
 
-    /**
-     * @hook interact wmdummy-data:generate
-     */
+    /** @hook interact wmdummy-data:generate */
     public function interact(InputInterface $input, OutputInterface $output, AnnotationData $annotationData): void
     {
         $entityType = $this->input->getArgument('entityType');
@@ -109,9 +106,7 @@ class DummyCreateCommands extends DrushCommands
         }
     }
 
-    /**
-     * @hook validate wmdummy-data:generate
-     */
+    /** @hook validate wmdummy-data:generate */
     public function validateEntityType(CommandData $commandData): void
     {
         $entityType = $this->input->getArgument('entityType');
@@ -161,9 +156,7 @@ class DummyCreateCommands extends DrushCommands
         }
     }
 
-    /**
-     * @hook process wmdummy-data:generate
-     */
+    /** @hook process wmdummy-data:generate */
     public function process($result, CommandData $commandData): void
     {
         $entityType = $this->input->getArgument('entityType');
@@ -256,9 +249,9 @@ class DummyCreateCommands extends DrushCommands
         );
 
         $this->logger()->success(
-            'Generated entity '.$entity->bundle().' with id '.$entity->id().' and '.$createdContent.' content blocks. '
+            'Generated entity ' . $entity->bundle() . ' with id ' . $entity->id() . ' and ' . $createdContent . ' content blocks. '
             . PHP_EOL
-            .'Further customisation can be done at the following url:'
+            . 'Further customisation can be done at the following url:'
             . PHP_EOL
             . $entity->toUrl('edit-form')
                 ->setAbsolute(true)
