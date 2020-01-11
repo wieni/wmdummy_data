@@ -15,7 +15,7 @@ class DummyDataManager extends DefaultPluginManager
         ModuleHandlerInterface $moduleHandler
     ) {
         parent::__construct(
-            'Generator',
+            '',
             $namespaces,
             $moduleHandler,
             DummyDataInterface::class,
