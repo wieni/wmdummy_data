@@ -102,9 +102,12 @@ class DrupalEntity extends Base
 
         $query = $storage->getQuery()
             ->sort($typeDefinition->getKey('id'), 'DESC')
-            ->condition($typeDefinition->getKey('bundle'), $bundle)
             ->condition($typeDefinition->getKey('langcode'), $langcode)
             ->range(0, 100);
+
+        if ($bundleKey = $typeDefinition->getKey('bundle')) {
+            $query->condition($bundleKey, $bundle);
+        }
 
         $ids = $query->execute();
         $ids = array_combine($ids, $ids);
