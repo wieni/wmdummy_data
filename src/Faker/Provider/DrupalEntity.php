@@ -31,7 +31,7 @@ class DrupalEntity extends Base
         $this->dummyDataGenerator = $dummyDataGenerator;
     }
 
-    public function drupalEntity(string $entityType, string $bundle, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, ?string $langcode = null): EntityInterface
+    public function drupalEntity(string $entityType, string $bundle, int $chanceOfCreatingNewEntity = 0, string $preset = DummyDataInterface::PRESET_DEFAULT, ?string $langcode = null): ?EntityInterface
     {
         $entities = $this->drupalEntities(
             $entityType,
@@ -41,6 +41,10 @@ class DrupalEntity extends Base
             $preset,
             $langcode
         );
+
+        if (empty($entities)) {
+            return null;
+        }
 
         return reset($entities);
     }
@@ -56,11 +60,15 @@ class DrupalEntity extends Base
         }
 
         $entities = $this->getExistingEntities($amount, $entityType, $bundle, $langcode);
-        $amountToCreate = $amount - count($entities);
+        $amountShort = $amount - count($entities);
+
+        if ($amountShort === 0 || $chanceOfCreatingNewEntity === 0) {
+            return $entities;
+        }
 
         return array_merge(
             $entities,
-            $this->getNewEntities($amountToCreate, $entityType, $bundle, $preset, $langcode)
+            $this->getNewEntities($amountShort, $entityType, $bundle, $preset, $langcode)
         );
     }
 
