@@ -4,36 +4,25 @@ namespace Drupal\wmdummy_data\Faker;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\wmdummy_data\Faker\Provider\DrupalEntity;
 use Drupal\wmdummy_data\Faker\Provider\RandomElementWeight;
 use Drupal\wmdummy_data\Faker\Provider\VimeoVideo;
 use Drupal\wmdummy_data\Faker\Provider\YouTubeVideo;
-use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
 use Faker\Factory as FactoryBase;
 use Faker\Generator;
+use Symfony\Component\DependencyInjection\ContainerAwareInterface;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 
-class Factory
+class Factory implements ContainerAwareInterface
 {
-    /** @var EntityTypeManagerInterface */
-    protected $entityTypeManager;
-    /** @var LanguageManagerInterface */
-    protected $languageManager;
-    /** @var DummyDataGenerator */
-    protected $dummyDataGenerator;
+    use ContainerAwareTrait;
+
     /** @var ImmutableConfig */
     protected $config;
 
     public function __construct(
-        EntityTypeManagerInterface $entityTypeManager,
-        LanguageManagerInterface $languageManager,
-        ConfigFactoryInterface $configFactory,
-        DummyDataGenerator $dummyDataGenerator
+        ConfigFactoryInterface $configFactory
     ) {
-        $this->entityTypeManager = $entityTypeManager;
-        $this->languageManager = $languageManager;
-        $this->dummyDataGenerator = $dummyDataGenerator;
         $this->config = $configFactory->get('wmdummy_data.settings');
     }
 
@@ -45,9 +34,8 @@ class Factory
         $generator->addProvider(
             new DrupalEntity(
                 $generator,
-                $this->entityTypeManager,
-                $this->languageManager,
-                $this->dummyDataGenerator
+                $this->container,
+                $this->container->get('wmmodel.factory.model')
             )
         );
 

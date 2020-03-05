@@ -12,7 +12,9 @@
     "require": {
         "php": ">=7.2.0",
         "drupal/core": "^8.0 || ^9.0",
-        "fzaninotto/faker": "^1.8"
+        "fzaninotto/faker": "^1.8",
+        "wieni/wmmodel_factory": "dev-release/v1",
+        "drupal/hook_event_dispatcher": "^1.27"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.0",
@@ -31,6 +33,8 @@
             "url": "https://packages.drupal.org/8"
         }
     ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "scripts": {
         "coding-standards": [
             "@composer normalize",

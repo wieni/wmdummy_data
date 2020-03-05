@@ -4,16 +4,15 @@ namespace  Drupal\wmdummy_data\Commands;
 
 use Consolidation\AnnotatedCommand\AnnotationData;
 use Consolidation\AnnotatedCommand\CommandData;
-use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfo;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\wmcontent\Entity\WmContentContainer;
 use Drupal\wmcontent\WmContentManager;
-use Drupal\wmdummy_data\DummyDataInterface;
-use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
-use Drupal\wmsingles\Service\WmSingles;
+use Drupal\wmdummy_data\DummyDataFactory;
+use Drupal\wmmodel\Factory\ModelFactoryInterface;
+use Drupal\wmmodel_factory\EntityFactoryPluginManager;
 use Drush\Commands\DrushCommands;
 use InvalidArgumentException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,29 +20,36 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class DummyCreateCommands extends DrushCommands
 {
-    /** @var EntityTypeBundleInfo */
-    protected $entityTypeBundleInfo;
-    /** @var DummyDataGenerator */
-    protected $dummyDataGenerator;
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
+    /** @var EntityTypeBundleInfo */
+    protected $entityTypeBundleInfo;
     /** @var LanguageManagerInterface */
     protected $languageManager;
+    /** @var EntityFactoryPluginManager */
+    protected $entityFactoryManager;
+    /** @var ModelFactoryInterface */
+    protected $modelFactory;
+    /** @var DummyDataFactory */
+    protected $factory;
+
     /** @var WmContentManager */
     protected $wmContentManager;
-    /** @var wmSingles */
-    protected $wmSingles;
 
     public function __construct(
-        EntityTypeBundleInfo $entityTypeBundleInfo,
-        DummyDataGenerator $dummyDataGenerator,
         EntityTypeManagerInterface $entityTypeManager,
-        LanguageManagerInterface $languageManager
+        EntityTypeBundleInfo $entityTypeBundleInfo,
+        LanguageManagerInterface $languageManager,
+        ModelFactoryInterface $modelFactory,
+        EntityFactoryPluginManager $factoryPluginManager,
+        DummyDataFactory $factory
     ) {
         $this->entityTypeBundleInfo = $entityTypeBundleInfo;
-        $this->dummyDataGenerator = $dummyDataGenerator;
         $this->entityTypeManager = $entityTypeManager;
         $this->languageManager = $languageManager;
+        $this->modelFactory = $modelFactory;
+        $this->entityFactoryManager = $factoryPluginManager;
+        $this->factory = $factory;
     }
 
     public function setWmContentManager(WmContentManager $wmContentManager): void
@@ -51,13 +57,8 @@ class DummyCreateCommands extends DrushCommands
         $this->wmContentManager = $wmContentManager;
     }
 
-    public function setWmSinglesManager(wmSingles $wmSingles): void
-    {
-        $this->wmSingles = $wmSingles;
-    }
-
     /**
-     * Command to generate entities by <entity-type> <bundle>. // does not make translatable yet
+     * Command to generate entities.
      *
      * @command wmdummy-data:generate
      * @aliases dummy
@@ -66,21 +67,25 @@ class DummyCreateCommands extends DrushCommands
      *      Name of bundle to attach fields to.
      * @param string $bundle
      *      Type of entity (e.g. node, user, comment).
-     * @param string $preset
-     *      Preset used to generate the content.
+     * @param string $factory
+     *      Factory used to generate the content.
      * @option count
      *      Amount of entities that should be made.
      * @option langcode
      *      Language the entity should be made in. [default: site-default]
+     * @option states
+     *      The states to use when generating the entity
      *
      * @usage drush wmdummy-data:generate entity-type
-     * @usage drush dummy entity-type bundle preset
-     * @usage drush dummy entity-type bundle preset --count=2 --langcode=nl
+     * @usage drush dummy entity-type bundle name
+     * @usage drush dummy entity-type bundle name --count=2 --langcode=nl
      */
-    public function generate(string $entityType, string $bundle, string $preset = DummyDataInterface::PRESET_BASIC, array $options = [
-        'count' => '1',
-        'langcode' => '',
-    ]): void
+    public function generate(
+        string $entityType,
+        string $bundle,
+        string $factory = 'default',
+        array $options = ['count' => '1', 'langcode' => '', 'states' => []]
+    ): void
     {
     }
 
@@ -89,8 +94,7 @@ class DummyCreateCommands extends DrushCommands
     {
         $entityType = $this->input->getArgument('entityType');
         $bundle = $this->input->getArgument('bundle');
-        $preset = $this->input->getArgument('preset');
-        $langcode = $this->getLangcode();
+        $factory = $this->input->getArgument('factory');
 
         if (!$entityType) {
             return;
@@ -101,27 +105,21 @@ class DummyCreateCommands extends DrushCommands
             $this->input->setArgument('bundle', $bundle);
         }
 
-        if (!$preset || $preset === DummyDataInterface::PRESET_BASIC) {
-            $this->input->setArgument('preset', $this->askPreset($entityType, $bundle, $langcode));
+        if (!$factory) {
+            $this->input->setArgument('factory', $this->askFactory($entityType, $bundle));
         }
     }
 
     /** @hook validate wmdummy-data:generate */
     public function validateEntityType(CommandData $commandData): void
     {
-        $entityType = $this->input->getArgument('entityType');
+        $entityTypeId = $this->input->getArgument('entityType');
         $bundle = $this->input->getArgument('bundle');
-        $preset = $this->input->getArgument('preset');
+        $factory = $this->input->getArgument('factory');
         $count = $this->input->getOption('count');
-        $langcode = $this->getLangcode();
+        $langcode = $this->input->getOption('langcode');
 
-        if (!$this->entityTypeExists($entityType)) {
-            throw new InvalidArgumentException(
-                t('Entity type with id \':entityType\' does not exist.', [':entityType' => $entityType])
-            );
-        }
-
-        if (!$this->bundleExists($entityType, $bundle)) {
+        if (!$this->bundleExists($entityTypeId, $bundle)) {
             throw new InvalidArgumentException(
                 t('Bundle type with id \':bundle\' does not exist in the entity type \':entityType\'.', [':bundle' => $bundle, ':entityType' => $entityType])
             );
@@ -133,23 +131,13 @@ class DummyCreateCommands extends DrushCommands
             );
         }
 
-        if (!$this->dummyDataGenerator->presetExists($entityType, $bundle, $preset, $langcode)) {
+        if (!$this->entityFactoryManager->getPluginIdByEntityType($entityTypeId, $bundle, $factory)) {
             throw new InvalidArgumentException(
-                t('Preset \':preset\' does not exist.', [':preset' => $preset])
+                t('Factory with name \':name\' does not exist.', [':name' => $factory])
             );
         }
 
-        // TODO: Do general entity access check instead
-        if (
-            isset($this->wmSingles)
-            && $entityType === 'node'
-            && ($nodeType = $this->entityTypeManager->getStorage('node_type')->load($bundle))
-            && $this->wmSingles->isSingle($nodeType)
-        ) {
-            throw new InvalidArgumentException('Cannot generate wmsingles.');
-        }
-
-        if (!$this->languageManager->getLanguage($langcode)) {
+        if ($langcode && !$this->languageManager->getLanguage($langcode)) {
             throw new InvalidArgumentException(
                 t('\':langcode\' is not a valid langcode.', [':langcode' => $langcode])
             );
@@ -159,16 +147,21 @@ class DummyCreateCommands extends DrushCommands
     /** @hook process wmdummy-data:generate */
     public function process($result, CommandData $commandData): void
     {
-        $entityType = $this->input->getArgument('entityType');
+        $entityTypeId = $this->input->getArgument('entityType');
         $bundle = $this->input->getArgument('bundle');
         $count = (int) $this->input->getOption('count');
-        $langcode = $this->getLangcode();
-        $preset = $this->input->getArgument('preset');
+        $states = $this->input->getOption('states');
+        $langcode = $this->input->getOption('langcode');
+        $factory = $this->input->getArgument('factory');
 
         $this->logger()->success('Generating...');
 
         for ($x = 0; $x < $count; $x++) {
-            $entity = $this->dummyDataGenerator->generateDummyData($entityType, $bundle, $preset, $langcode);
+            $entity = $this->factory
+                ->ofType($entityTypeId, $bundle, $factory)
+                ->langcode($langcode)
+                ->states($states)
+                ->create();
 
             if ($entity instanceof ContentEntityInterface) {
                 $this->logResult($entity);
@@ -176,7 +169,7 @@ class DummyCreateCommands extends DrushCommands
         }
 
         $this->logger()->success(
-            "Successfully made {$count} dummies for {$entityType} {$bundle} with preset {$preset}."
+            "Successfully made {$count} dummies for {$entityTypeId} {$bundle} with factory {$factory}."
         );
     }
 
@@ -194,48 +187,21 @@ class DummyCreateCommands extends DrushCommands
         return $this->io()->choice('Bundle', $choices);
     }
 
-    protected function askPreset(string $entityType, string $bundle, string $langcode)
+    protected function askFactory(string $entityType, string $bundle)
     {
-        $choices = [];
-
-        $presets = array_filter(
-            $this->dummyDataGenerator->getPresets(),
-            function (array $preset) use ($entityType, $bundle, $langcode) {
-                return $preset['entity_type'] === $entityType
-                    && $preset['bundle'] === $bundle
-                    && $preset['langcode'] === $langcode;
-            }
-        );
-
-        if (empty($presets)) {
-            $choices[DummyDataInterface::PRESET_BASIC] = DummyDataInterface::PRESET_BASIC;
-        }
-
-        foreach ($presets as $preset) {
-            $choices[$preset['preset']] = $preset['preset'];
-        }
+        $names = $this->entityFactoryManager->getNamesByEntityType($entityType, $bundle);
+        $choices = array_combine($names, $names);
 
         if (count($choices) === 1) {
             return reset($choices);
         }
 
-        return $this->io()->choice('Preset', $choices);
+        return $this->io()->choice('Factory', $choices);
     }
 
     protected function bundleExists(string $entityType, string $bundleName): bool
     {
         return isset($this->entityTypeBundleInfo->getBundleInfo($entityType)[$bundleName]);
-    }
-
-    protected function entityTypeExists(string $id): bool
-    {
-        try {
-            $this->entityTypeManager->getDefinition($id);
-        } catch (PluginNotFoundException $e) {
-            return false;
-        }
-
-        return true;
     }
 
     protected function logResult(ContentEntityInterface $entity): void
@@ -257,15 +223,5 @@ class DummyCreateCommands extends DrushCommands
                 ->setAbsolute(true)
                 ->toString()
         );
-    }
-
-    protected function getLangcode(): string
-    {
-        $langcode = $this->input->getOption('langcode');
-        if (empty($langcode)) {
-            $langcode = $this->languageManager->getDefaultLanguage()->getId();
-        }
-
-        return $langcode;
     }
 }

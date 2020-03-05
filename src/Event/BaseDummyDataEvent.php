@@ -3,22 +3,26 @@
 namespace Drupal\wmdummy_data\Event;
 
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\wmdummy_data\DummyDataInterface;
+use Drupal\wmmodel_factory\EntityFactoryInterface;
 use Symfony\Component\EventDispatcher\Event;
 
 class BaseDummyDataEvent extends Event
 {
     /** @var ContentEntityInterface */
     protected $entity;
-    /** @var DummyDataInterface */
-    protected $generator;
+    /** @var EntityFactoryInterface */
+    protected $factory;
+    /** @var string[] */
+    protected $states;
 
     public function __construct(
         ContentEntityInterface $entity,
-        DummyDataInterface $generator
+        EntityFactoryInterface $factory,
+        array $states
     ) {
         $this->entity = $entity;
-        $this->generator = $generator;
+        $this->factory = $factory;
+        $this->states = $states;
     }
 
     public function getEntity(): ContentEntityInterface
@@ -26,8 +30,13 @@ class BaseDummyDataEvent extends Event
         return $this->entity;
     }
 
-    public function getGenerator(): DummyDataInterface
+    public function getFactory(): EntityFactoryInterface
     {
-        return $this->generator;
+        return $this->factory;
+    }
+
+    public function getStates(): array
+    {
+        return $this->states;
     }
 }

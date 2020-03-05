@@ -4,3 +4,6 @@ description: Wieni Dummy data
 core: 8.x
 package: Wieni
 core_version_requirement: ^8 || ^9
+dependencies:
+    - wmmodel_factory
+    - hook_event_dispatcher

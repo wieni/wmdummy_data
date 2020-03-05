@@ -2,18 +2,23 @@
 
 namespace  Drupal\wmdummy_data\Commands;
 
-use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\wmmodel_factory\EntityFactoryPluginManager;
 use Drush\Commands\DrushCommands;
 
 class DummyDeleteCommand extends DrushCommands
 {
-    /** @var DummyDataGenerator */
-    protected $dummyDataGenerator;
+    /** @var EntityTypeManagerInterface */
+    protected $entityTypeManager;
+    /** @var EntityFactoryPluginManager */
+    protected $entityFactoryManager;
 
     public function __construct(
-        DummyDataGenerator $dummyDataGenerator
+        EntityTypeManagerInterface $entityTypeManager,
+        EntityFactoryPluginManager $entityFactoryManager
     ) {
-        $this->dummyDataGenerator = $dummyDataGenerator;
+        $this->entityTypeManager = $entityTypeManager;
+        $this->entityFactoryManager = $entityFactoryManager;
     }
 
     /**
@@ -24,27 +29,56 @@ class DummyDeleteCommand extends DrushCommands
      *
      * @param string $entityType
      *      Name of bundle to attach fields to.
+     * @param string $bundle
+     *      Type of entity (e.g. node, user, comment).
+     * @param string $factory
+     *      Factory used to generate the content.
      *
-     * @usage drush wmdummy-data:delete all
-     * @usage drush wmdummy-data:delete entity-type
+     * @option langcode
+     *      Language the entity should be made in. [default: site-default]
+     *
+     * @usage drush wmdummy-data:delete --all
+     * @usage drush wmdummy-data:delete node page
      */
-    public function delete(string $entityType): void
+    public function delete(
+        ?string $entityType = null,
+        ?string $bundle = null,
+        ?string $factory = null,
+        array $options = ['langcode' => '']
+    ): void
     {
-        $totalCount = 0;
+        $storage = $this->entityTypeManager->getStorage('dummy_entity');
+        $query = $storage->getQuery();
 
-        if ($entityType === 'all') {
-            $entityTypes = $this->dummyDataGenerator->getGeneratedEntityTypes();
-        } else {
-            $entityTypes = [$entityType];
+        if (
+            !$entityType && !$bundle
+            && !$this->confirm('Are you sure you want to delete all dummy content?')
+        ) {
+            return;
         }
 
-        foreach ($entityTypes as $entityType) {
-            $count = $this->dummyDataGenerator->deleteGeneratedEntities($entityType);
-            $totalCount += $count;
+        if ($entityType && $bundle) {
+            $query->condition('entity_type', $entityType);
+            $query->condition('entity_bundle', $bundle);
 
-            $this->logger()->success(
-                "Successfully destroyed {$count} dummies for entity {$entityType}."
-            );
+            if ($factory) {
+                $query->condition('factory_name', $factory);
+            } else {
+                $factories = $this->entityFactoryManager->getNamesByEntityType($entityType, $bundle);
+                $query->condition('factory_name', $factories, 'IN');
+            }
+        }
+
+        if ($langcode = $this->input->getOption('langcode')) {
+            $query->condition('entity_language', $langcode);
+        }
+
+        $totalCount = (clone $query)->count()->execute();
+        $ids = $query->execute();
+
+        if (!empty($ids)) {
+            $entities = $storage->loadMultiple($ids);
+            $storage->delete($entities);
         }
 
         $this->logger()->success(

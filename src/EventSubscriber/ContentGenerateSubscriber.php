@@ -2,42 +2,41 @@
 
 namespace Drupal\wmdummy_data\EventSubscriber;
 
-use Drupal\wmcontent\WmContentManager;
 use Drupal\wmdummy_data\ContentGenerateInterface;
+use Drupal\wmdummy_data\DummyDataEvents;
 use Drupal\wmdummy_data\Event\DummyDataCreateEvent;
-use Drupal\wmdummy_data\WmDummyDataEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class ContentGenerateSubscriber implements EventSubscriberInterface
 {
-    /** @var WmContentManager */
+    /** @var \Drupal\wmcontent\WmContentManager */
     protected $wmContentManager;
 
     public static function getSubscribedEvents()
     {
-        $events[WmDummyDataEvents::DUMMY_DATA_CREATE][] = ['onCreate'];
+        $events[DummyDataEvents::CREATE][] = ['onCreate'];
 
         return $events;
     }
 
-    public function setWmContentManager(WmContentManager $wmContentManager): void
+    public function setWmContentManager($wmContentManager): void
     {
         $this->wmContentManager = $wmContentManager;
     }
 
-    public function onCreate(DummyDataCreateEvent $event)
+    public function onCreate(DummyDataCreateEvent $event): void
     {
-        $generator = $event->getGenerator();
+        $factory = $event->getFactory();
 
         if (
             !isset($this->wmContentManager)
-            || !$generator instanceof ContentGenerateInterface
+            || !$factory instanceof ContentGenerateInterface
         ) {
             return;
         }
 
         $entity = $event->getEntity();
-        $definition = $generator->getPluginDefinition();
+        $definition = $factory->getPluginDefinition();
         $containers = $this->wmContentManager->getHostContainers($entity);
 
         if (isset($definition['wmcontent_containers'])) {
@@ -48,11 +47,12 @@ class ContentGenerateSubscriber implements EventSubscriberInterface
         }
 
         foreach ($containers as $container) {
-            foreach ($generator->generateContent($container) as $child) {
-                $child->set('wmcontent_parent', $entity->id());
-                $child->set('wmcontent_parent_type', $entity->getEntityTypeId());
-                $child->set('wmcontent_container', $container->id());
-                $child->save();
+            foreach ($factory->generateContent($container) as $builder) {
+                $builder->create([
+                    'wmcontent_parent' => $entity->id(),
+                    'wmcontent_parent_type' => $entity->getEntityTypeId(),
+                    'wmcontent_container' => $container->id(),
+                ]);
             }
         }
     }

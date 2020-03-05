@@ -1,0 +1,42 @@
+<?php
+
+use Drupal\Core\Entity\ContentEntityType;
+
+/**
+ * Install dummy_entity entity type
+ */
+function wmdummy_data_update_8001()
+{
+    $updateManager = \Drupal::entityDefinitionUpdateManager();
+    $updateManager->installEntityType(new ContentEntityType([
+        'id' => 'dummy_entity',
+        'label' => t('Dummy entity'),
+        'base_table' => 'dummy_entity',
+        'translatable' => false,
+        'entity_keys' => [
+            'id' => 'did',
+        ],
+    ]));
+}
+
+/**
+ * Delete all existing dummy data
+ */
+function wmdummy_data_update_8002()
+{
+    $state = \Drupal::state();
+    $entityTypeManager = \Drupal::entityTypeManager();
+
+    foreach ($state->get('wmdummy_data_keys', []) as $key) {
+        [, $entityTypeId] = explode('.', $key);
+
+        $storage = $entityTypeManager->getStorage($entityTypeId);
+        $ids = $state->get($key);
+        $entities = $storage->loadMultiple($ids);
+
+        $storage->delete($entities);
+        $state->delete($key);
+    }
+
+    $state->delete('wmdummy_data_keys');
+}

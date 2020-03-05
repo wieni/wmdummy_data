@@ -2,8 +2,7 @@
 
 namespace Drupal\wmdummy_data;
 
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\wmcontent\Entity\WmContentContainer;
+use Drupal\wmmodel_factory\FactoryBuilder;
 
 interface ContentGenerateInterface
 {
@@ -12,7 +11,7 @@ interface ContentGenerateInterface
      * every parent container of this entity. If no children should be generated,
      * just return an empty array.
      *
-     * @return EntityInterface[]
+     * @return FactoryBuilder[]
      */
-    public function generateContent(WmContentContainer $container): array;
+    public function generateContent(\Drupal\wmcontent\Entity\WmContentContainer $container): array;
 }
