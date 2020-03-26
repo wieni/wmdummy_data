@@ -1,6 +1,7 @@
 <?php
 
 use Drupal\Core\Entity\ContentEntityType;
+use Drupal\wmdummy_data\Entity\DummyEntity;
 
 /**
  * Install dummy_entity entity type
@@ -8,7 +9,8 @@ use Drupal\Core\Entity\ContentEntityType;
 function wmdummy_data_update_8001()
 {
     $updateManager = \Drupal::entityDefinitionUpdateManager();
-    $updateManager->installEntityType(new ContentEntityType([
+
+    $entityType = new ContentEntityType([
         'id' => 'dummy_entity',
         'label' => t('Dummy entity'),
         'base_table' => 'dummy_entity',
@@ -16,7 +18,11 @@ function wmdummy_data_update_8001()
         'entity_keys' => [
             'id' => 'did',
         ],
-    ]));
+    ]);
+
+    $definitions = DummyEntity::baseFieldDefinitions($entityType);
+
+    $updateManager->installFieldableEntityType($entityType, $definitions);
 }
 
 /**
@@ -39,4 +45,33 @@ function wmdummy_data_update_8002()
     }
 
     $state->delete('wmdummy_data_keys');
+}
+
+/**
+ * Install dummy_entity base fields
+ */
+function wmdummy_data_update_8003()
+{
+    $updateManager = \Drupal::entityDefinitionUpdateManager();
+
+    $entityType = new ContentEntityType([
+        'id' => 'dummy_entity',
+        'label' => t('Dummy entity'),
+        'base_table' => 'dummy_entity',
+        'translatable' => false,
+        'entity_keys' => [
+            'id' => 'did',
+        ],
+    ]);
+
+    $definitions = DummyEntity::baseFieldDefinitions($entityType);
+
+    foreach ($definitions as $name => $definition) {
+        $updateManager->installFieldStorageDefinition(
+            $name,
+            $entityType->id(),
+            'wmdummy_data',
+            $definition
+        );
+    }
 }
