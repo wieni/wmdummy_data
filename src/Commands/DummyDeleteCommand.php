@@ -45,8 +45,7 @@ class DummyDeleteCommand extends DrushCommands
         ?string $bundle = null,
         ?string $factory = null,
         array $options = ['langcode' => '']
-    ): void
-    {
+    ): void {
         $storage = $this->entityTypeManager->getStorage('dummy_entity');
         $query = $storage->getQuery();
 

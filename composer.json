@@ -12,19 +12,42 @@
     "require": {
         "php": ">=7.2.0",
         "drupal/core": "^8.0 || ^9.0",
+        "drupal/hook_event_dispatcher": "^1.27",
         "fzaninotto/faker": "^1.8",
-        "wieni/wmmodel_factory": "dev-release/v1",
-        "drupal/hook_event_dispatcher": "^1.27"
+        "wieni/wmmodel_factory": "dev-release/v1"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.0",
+        "fenetikm/autoload-drupal": "^0.2.0",
         "wieni/wmcodestyle": "^1.0"
     },
     "extra": {
+        "autoload-drupal": {
+            "modules": [
+                "vendor/drupal/core/modules/",
+                [
+                    "vendor/drupal",
+                    [
+                        "hook_event_dispatcher"
+                    ]
+                ],
+                [
+                    "vendor/wieni",
+                    [
+                        "wmmodel_factory"
+                    ]
+                ]
+            ]
+        },
         "drush": {
             "services": {
                 "drush.services.yml": "^9 || ^10"
             }
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Drupal\\wmdummy_data\\": "src/"
         }
     },
     "repositories": [
@@ -38,7 +61,8 @@
     "scripts": {
         "coding-standards": [
             "@composer normalize",
-            "php-cs-fixer fix --config=.php_cs.php"
+            "php-cs-fixer fix --config=.php_cs.php",
+            "phpstan analyse"
         ]
     }
 }

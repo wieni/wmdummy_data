@@ -85,8 +85,7 @@ class DummyCreateCommands extends DrushCommands
         string $bundle,
         string $factory = 'default',
         array $options = ['count' => '1', 'langcode' => '', 'states' => []]
-    ): void
-    {
+    ): void {
     }
 
     /** @hook interact wmdummy-data:generate */

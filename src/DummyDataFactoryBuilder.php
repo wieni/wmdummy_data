@@ -28,8 +28,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
         ?string $langcode = null,
         array $afterMaking = [],
         array $afterCreating = []
-    ): FactoryBuilder
-    {
+    ): FactoryBuilder {
         $instance = parent::createInstance(
             $container,
             $entityType,
@@ -138,6 +137,21 @@ class DummyDataFactoryBuilder extends FactoryBuilder
         return $isSingle ? reset($instances) : $instances;
     }
 
+    public function load(): array
+    {
+        if ($this->amount === 0) {
+            return [];
+        }
+
+        $factoryName = $this->getFactoryName(false);
+
+        if (empty($factoryName) || $factoryName === 'default') {
+            return $this->loadAny();
+        }
+
+        return $this->loadTracked();
+    }
+
     protected function doMake(array $attributes = []): array
     {
         $made = [];
@@ -156,21 +170,6 @@ class DummyDataFactoryBuilder extends FactoryBuilder
         }
 
         return [is_array($made) ? $made : [$made], $loaded];
-    }
-
-    public function load(): array
-    {
-        if ($this->amount === 0) {
-            return [];
-        }
-
-        $factoryName = $this->getFactoryName(false);
-
-        if (empty($factoryName) || $factoryName === 'default') {
-            return $this->loadAny();
-        }
-
-        return $this->loadTracked();
     }
 
     protected function loadTracked(): array
@@ -205,7 +204,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
 
         return array_reduce(
             $storage->loadMultiple($ids),
-            static function (array $entities, DummyEntityInterface $dummyEntity) {
+            static function (array $entities, DummyEntityInterface $dummyEntity): array {
                 $entity = $dummyEntity->getGeneratedEntity();
                 $entities[$entity->id()] = $entity;
 
