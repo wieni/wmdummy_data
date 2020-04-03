@@ -3,46 +3,43 @@
 namespace Drupal\wmdummy_data\Form;
 
 use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Form\FormBase;
+use Drupal\Core\Form\FormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\wmdummy_data\DummyDataInterface;
-use Drupal\wmdummy_data\DummyDataManager;
-use Drupal\wmdummy_data\Service\Generator\DummyDataGenerator;
+use Drupal\Core\Session\AccountProxyInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\wmdummy_data\DummyDataFactory;
+use Drupal\wmmodel_factory\EntityFactoryPluginManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class OverviewForm extends FormBase
+class OverviewForm implements FormInterface, ContainerInjectionInterface
 {
+    use StringTranslationTrait;
+
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
+    /** @var AccountProxyInterface */
+    protected $currentUser;
     /** @var MessengerInterface */
     protected $messenger;
-    /** @var DummyDataManager */
-    protected $manager;
-    /** @var DummyDataGenerator */
-    protected $generator;
-
-    public function __construct(
-        EntityTypeManagerInterface $entityTypeManager,
-        MessengerInterface $messenger,
-        DummyDataManager $manager,
-        DummyDataGenerator $generator
-    ) {
-        $this->entityTypeManager = $entityTypeManager;
-        $this->messenger = $messenger;
-        $this->manager = $manager;
-        $this->generator = $generator;
-    }
+    /** @var EntityFactoryPluginManager */
+    protected $entityFactoryManager;
+    /** @var DummyDataFactory */
+    protected $factory;
 
     public static function create(ContainerInterface $container)
     {
-        return new static(
-            $container->get('entity_type.manager'),
-            $container->get('messenger'),
-            $container->get('plugin.manager.dummy_data'),
-            $container->get('wmdummy_data.dummy_data_generator')
-        );
+        $instance = new static;
+        $instance->entityTypeManager = $container->get('entity_type.manager');
+        $instance->currentUser = $container->get('current_user');
+        $instance->messenger = $container->get('messenger');
+        $instance->entityFactoryManager = $container->get('plugin.manager.wmmodel_factory.factory');
+        $instance->factory = $container->get('wmdummy_data.factory');
+
+        return $instance;
     }
 
     public function getFormId()
@@ -60,7 +57,7 @@ class OverviewForm extends FormBase
             '#type' => 'details',
             '#group' => 'tabs',
             '#title' => $this->t('Generate'),
-            '#access' => $this->currentUser()->hasPermission('generate dummy data'),
+            '#access' => $this->currentUser->hasPermission('generate dummy data'),
         ];
 
         $this->buildGenerateForm($form);
@@ -69,7 +66,7 @@ class OverviewForm extends FormBase
             '#type' => 'details',
             '#group' => 'tabs',
             '#title' => $this->t('Delete'),
-            '#access' => $this->currentUser()->hasPermission('delete dummy data'),
+            '#access' => $this->currentUser->hasPermission('delete dummy data'),
         ];
 
         $this->buildDeleteForm($form);
@@ -86,15 +83,13 @@ class OverviewForm extends FormBase
                 $formState->setErrorByName('amount', 'You have to specify an amount.');
             }
 
-            if ($formState->getValue('generator') === '') {
-                $formState->setErrorByName('generator', 'You have to specify a generator.');
+            if ($formState->getValue('factory') === '') {
+                $formState->setErrorByName('factory', 'You have to specify a factory.');
             }
         }
 
-        if ($name === 'delete') {
-            if ($formState->getValue('entity_type') === '') {
-                $formState->setErrorByName('entity_type', 'You have to specify an entity type.');
-            }
+        if ($name === 'delete' && $formState->getValue('entity_type') === '') {
+            $formState->setErrorByName('entity_type', 'You have to specify an entity type.');
         }
     }
 
@@ -104,13 +99,15 @@ class OverviewForm extends FormBase
 
     public function generate(array &$form, FormStateInterface $formState): void
     {
-        [$entityType, $bundle, $preset] = explode('.', $formState->getValue('generator'));
+        [$entityTypeId, $bundle, $name] = explode('.', $formState->getValue('factory'));
         $amount = $formState->getValue('amount');
         $generated = 0;
 
         while ($generated < $amount) {
             try {
-                $this->generator->generateDummyData($entityType, $bundle, $preset);
+                $this->factory
+                    ->ofType($entityTypeId, $bundle, $name)
+                    ->create();
             } catch (\Exception $e) {
                 $this->messenger->addError("An error occurred while generating: {$e->getMessage()}");
                 break;
@@ -118,33 +115,31 @@ class OverviewForm extends FormBase
             $generated++;
         }
 
-        $this->messenger->addStatus("Successfully made {$generated} dummies for {$entityType} {$bundle} with preset {$preset}.");
+        $this->messenger->addStatus("Successfully created {$generated} entities for {$entityTypeId} {$bundle} with factory {$name}.");
     }
 
     public function delete(array &$form, FormStateInterface $formState): void
     {
-        $entityType = $formState->getValue('entity_type');
+        $entityTypeId = $formState->getValue('entity_type');
+        $storage = $this->entityTypeManager->getStorage('dummy_entity');
+        $ids = $this->getGeneratedEntityIds($entityTypeId);
+        $count = count($ids);
 
-        if ($entityType === 'all') {
-            $entityTypes = $this->generator->getGeneratedEntityTypes();
-        } else {
-            $entityTypes = [$entityType];
+        if (!empty($ids)) {
+            $entities = $storage->loadMultiple($ids);
+            $storage->delete($entities);
         }
 
-        foreach ($entityTypes as $entityType) {
-            $count = $this->generator->deleteGeneratedEntities($entityType);
-
-            $this->messenger->addStatus(
-                "Successfully destroyed {$count} dummies for entity type {$entityType}."
-            );
-        }
+        $this->messenger->addStatus(
+            "Successfully destroyed {$count} entities for entity type {$entityTypeId}."
+        );
     }
 
     protected function buildGenerateForm(array &$form)
     {
         $options = array_reduce(
-            $this->manager->getDefinitions(),
-            function (array $options, array $definition) {
+            $this->entityFactoryManager->getDefinitions(),
+            function (array $options, array $definition): array {
                 $entityType = $this->entityTypeManager
                     ->getDefinition($definition['entity_type']);
                 $bundle = $this->entityTypeManager
@@ -156,10 +151,10 @@ class OverviewForm extends FormBase
                 $id = implode('.', [
                     $definition['entity_type'],
                     $definition['bundle'],
-                    $definition['preset'],
+                    $definition['name'],
                 ]);
 
-                if ($definition['preset'] === DummyDataInterface::PRESET_DEFAULT) {
+                if ($definition['name'] === 'default') {
                     $label = '@entityType %bundle';
                 } else {
                     $label = '@entityType %bundle (@preset)';
@@ -171,7 +166,7 @@ class OverviewForm extends FormBase
                     $options[$id] = new FormattableMarkup($label, [
                         '@entityType' => $entityType->getLabel(),
                         '%bundle' => $bundle->label(),
-                        '@preset' => $definition['preset'],
+                        '@preset' => $definition['name'],
                     ]);
                 }
 
@@ -180,9 +175,9 @@ class OverviewForm extends FormBase
             []
         );
 
-        $form['generate']['generator'] = [
+        $form['generate']['factory'] = [
             '#type' => 'select',
-            '#title' => $this->t('Generator'),
+            '#title' => $this->t('Factory'),
             '#options' => $options,
         ];
 
@@ -208,13 +203,17 @@ class OverviewForm extends FormBase
             '#type' => 'select',
             '#title' => $this->t('Entity type'),
             '#options' => array_reduce(
-                $this->generator->getGeneratedEntityTypes(),
-                function (array $options, string $entityTypeId) {
-                    $entityType = $this->entityTypeManager->getDefinition($entityTypeId);
+                $this->entityTypeManager->getDefinitions(),
+                function (array $options, EntityTypeInterface $entityType): array {
+                    $ids = $this->getGeneratedEntityIds($entityType->id());
+
+                    if (empty($ids)) {
+                        return $options;
+                    }
 
                     return $options + [
-                            $entityTypeId => $this->formatPlural(
-                                count($this->generator->getGeneratedEntityIds($entityTypeId)),
+                            $entityType->id() => $this->formatPlural(
+                                count($ids),
                                 '@entityType (1 entity)',
                                 '@entityType (@count entities)',
                                 ['@entityType' => $entityType->getLabel()]
@@ -223,7 +222,7 @@ class OverviewForm extends FormBase
                 },
                 [
                     'all' => $this->formatPlural(
-                        count($this->generator->getGeneratedEntityIds()),
+                        count($this->getGeneratedEntityIds()),
                         'All (1 entity)',
                         'All (@count entities)'
                     ),
@@ -240,5 +239,17 @@ class OverviewForm extends FormBase
                 [$this, 'delete'],
             ],
         ];
+    }
+
+    protected function getGeneratedEntityIds(?string $entityTypeId = null): array
+    {
+        $storage = $this->entityTypeManager->getStorage('dummy_entity');
+        $query = $storage->getQuery();
+
+        if ($entityTypeId && $entityTypeId !== 'all') {
+            $query->condition('entity_type', $entityTypeId);
+        }
+
+        return $query->execute();
     }
 }
