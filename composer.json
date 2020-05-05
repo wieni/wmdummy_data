@@ -10,11 +10,11 @@
         }
     ],
     "require": {
-        "php": ">=7.2.0",
+        "php": ">=7.1.0",
         "drupal/core": "^8.0 || ^9.0",
         "drupal/hook_event_dispatcher": "^1.27",
         "fzaninotto/faker": "^1.8",
-        "wieni/wmmodel_factory": "dev-release/v1"
+        "wieni/wmmodel_factory": "^1.0"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.0",
