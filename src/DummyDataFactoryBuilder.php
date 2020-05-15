@@ -134,7 +134,11 @@ class DummyDataFactoryBuilder extends FactoryBuilder
             );
         }
 
-        return $isSingle ? reset($instances) : $instances;
+        if ($isSingle) {
+            return reset($instances) ?: null;
+        }
+
+        return $instances;
     }
 
     public function load(): array
