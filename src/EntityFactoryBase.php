@@ -3,6 +3,7 @@
 namespace Drupal\wmdummy_data;
 
 use Drupal\wmdummy_data\Faker\Provider\DrupalEntity;
+use Drupal\wmdummy_data\Faker\Provider\Html;
 use Drupal\wmdummy_data\Faker\Provider\RandomElementWeight;
 use Drupal\wmdummy_data\Faker\Provider\VimeoVideo;
 use Drupal\wmdummy_data\Faker\Provider\YouTubeVideo;
@@ -11,7 +12,7 @@ use Faker\Generator;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * @property Generator|DrupalEntity|RandomElementWeight|VimeoVideo|YouTubeVideo faker
+ * @property Generator|DrupalEntity|Html|RandomElementWeight|VimeoVideo|YouTubeVideo faker
  */
 abstract class EntityFactoryBase extends EntityFactoryBaseBase
 {

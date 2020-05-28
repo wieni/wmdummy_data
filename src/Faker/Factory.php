@@ -5,6 +5,7 @@ namespace Drupal\wmdummy_data\Faker;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Config\ImmutableConfig;
 use Drupal\wmdummy_data\Faker\Provider\DrupalEntity;
+use Drupal\wmdummy_data\Faker\Provider\Html;
 use Drupal\wmdummy_data\Faker\Provider\RandomElementWeight;
 use Drupal\wmdummy_data\Faker\Provider\VimeoVideo;
 use Drupal\wmdummy_data\Faker\Provider\YouTubeVideo;
@@ -36,6 +37,12 @@ class Factory implements ContainerAwareInterface
                 $generator,
                 $this->container,
                 $this->container->get('wmmodel.factory.model')
+            )
+        );
+
+        $generator->addProvider(
+            new Html(
+                $generator
             )
         );
 
