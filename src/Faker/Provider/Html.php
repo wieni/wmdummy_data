@@ -4,6 +4,16 @@ namespace Drupal\wmdummy_data\Faker\Provider;
 
 use Faker\Provider\Base;
 
+/**
+ * @property string $htmlBlock
+ * @property string $htmlHeading
+ * @property string $htmlParagraph
+ * @property string $htmlOrdenedList
+ * @property string $htmlUnordenedList
+ * @property string $htmlEmbed
+ * @property string $htmlAnchor
+ * @property string $htmlTable
+ */
 class Html extends Base
 {
     public function htmlBlock(): string
