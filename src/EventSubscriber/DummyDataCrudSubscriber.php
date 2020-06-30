@@ -2,9 +2,8 @@
 
 namespace Drupal\wmdummy_data\EventSubscriber;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\hook_event_dispatcher\Event\Entity\EntityDeleteEvent;
-use Drupal\hook_event_dispatcher\HookEventDispatcherInterface;
 use Drupal\wmdummy_data\DummyDataEvents;
 use Drupal\wmdummy_data\Event\DummyDataCreateEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,7 +22,6 @@ class DummyDataCrudSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         $events[DummyDataEvents::CREATE][] = ['onCreate'];
-        $events[HookEventDispatcherInterface::ENTITY_DELETE][] = ['onDelete'];
 
         return $events;
     }
@@ -49,10 +47,8 @@ class DummyDataCrudSubscriber implements EventSubscriberInterface
         $dummyEntity->save();
     }
 
-    public function onDelete(EntityDeleteEvent $event): void
+    public function onDelete(EntityInterface $entity): void
     {
-        $entity = $event->getEntity();
-
         $storage = $this->entityTypeManager
             ->getStorage('dummy_entity');
 

@@ -12,7 +12,6 @@
     "require": {
         "php": ">=7.1.0",
         "drupal/core": "^8.7.7 || ^9",
-        "drupal/hook_event_dispatcher": "^1.27",
         "fzaninotto/faker": "^1.8",
         "wieni/wmmodel_factory": "^1.0"
     },
@@ -25,12 +24,6 @@
         "autoload-drupal": {
             "modules": [
                 "vendor/drupal/core/modules/",
-                [
-                    "vendor/drupal",
-                    [
-                        "hook_event_dispatcher"
-                    ]
-                ],
                 [
                     "vendor/wieni",
                     [

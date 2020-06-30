@@ -1,0 +1,10 @@
+<?php
+
+use Drupal\Core\Entity\EntityInterface;
+
+function wmdummy_data_entity_delete(EntityInterface $entity)
+{
+    \Drupal::getContainer()
+        ->get('wmdummy_data.crud.subscriber')
+        ->onDelete($entity);
+}
