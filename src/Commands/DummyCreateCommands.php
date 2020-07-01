@@ -213,14 +213,20 @@ class DummyCreateCommands extends DrushCommands
             0
         );
 
-        $this->logger()->success(
-            'Generated entity ' . $entity->bundle() . ' with id ' . $entity->id() . ' and ' . $createdContent . ' content blocks. '
-            . PHP_EOL
-            . 'Further customisation can be done at the following url:'
-            . PHP_EOL
-            . $entity->toUrl('edit-form')
-                ->setAbsolute(true)
-                ->toString()
+        $message = sprintf(
+            'Generated entity %s with id %s and %s content blocks.%s',
+            $entity->bundle(),
+            $entity->id(),
+            $createdContent,
+            PHP_EOL
         );
+
+        if ($entity->hasLinkTemplate('edit-form')) {
+            $message .= 'Further customisation can be done at the following url:';
+            $message .= PHP_EOL;
+            $message .= $entity->toUrl('edit-form')->setAbsolute(true)->toString();
+        }
+
+        $this->logger()->success($message);
     }
 }
