@@ -13,7 +13,7 @@
         "php": ">=7.1.0",
         "drupal/core": "^8.7.7 || ^9",
         "fzaninotto/faker": "^1.8",
-        "wieni/wmmodel_factory": "^1.0"
+        "wieni/wmmodel_factory": "^1.1"
     },
     "require-dev": {
         "ergebnis/composer-normalize": "^2.0",
