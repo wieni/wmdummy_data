@@ -205,21 +205,30 @@ class DummyCreateCommands extends DrushCommands
 
     protected function logResult(ContentEntityInterface $entity): void
     {
-        $createdContent = array_reduce(
-            $this->wmContentManager->getHostContainers($entity),
-            function (int $count, WmContentContainer $container) use ($entity) {
-                return $count + count($this->wmContentManager->getContent($entity, $container->id()));
-            },
-            0
-        );
+        if (isset($this->wmContentManager)) {
+            $createdContent = array_reduce(
+                $this->wmContentManager->getHostContainers($entity),
+                function (int $count, WmContentContainer $container) use ($entity) {
+                    return $count + count($this->wmContentManager->getContent($entity, $container->id()));
+                },
+                0
+            );
 
-        $message = sprintf(
-            'Generated entity %s with id %s and %s content blocks.%s',
-            $entity->bundle(),
-            $entity->id(),
-            $createdContent,
-            PHP_EOL
-        );
+            $message = sprintf(
+                'Generated entity %s with id %s and %s content blocks.%s',
+                $entity->bundle(),
+                $entity->id(),
+                $createdContent,
+                PHP_EOL
+            );
+        } else {
+            $message = sprintf(
+                'Generated entity %s with id %s.%s',
+                $entity->bundle(),
+                $entity->id(),
+                PHP_EOL
+            );
+        }
 
         if ($entity->hasLinkTemplate('edit-form')) {
             $message .= 'Further customisation can be done at the following url:';
