@@ -12,7 +12,7 @@
     "require": {
         "php": ">=7.1.0",
         "drupal/core": "^8.7.7 || ^9",
-        "fzaninotto/faker": "^1.8",
+        "fakerphp/faker": "^1.9",
         "wieni/wmmodel_factory": "^1.1"
     },
     "require-dev": {
