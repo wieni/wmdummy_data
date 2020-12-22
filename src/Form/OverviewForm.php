@@ -151,14 +151,21 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
         $entities = $storage->loadMultiple($ids);
         $storage->delete($entities);
 
-        $entityType = $this->entityTypeManager
-            ->getDefinition($entityTypeId);
+        if ($entityTypeId === 'all') {
+            $entityTypeLabel = count($ids) > 1
+                ? 'entities'
+                : 'entity';
+        } else {
+            $entityType = $this->entityTypeManager
+                ->getDefinition($entityTypeId);
+            $entityTypeLabel = count($ids) > 1
+                ? $entityType->getPluralLabel()
+                : $entityType->getSingularLabel();
+        }
 
         $this->messenger->addStatus($this->t('Successfully deleted @amount @entityTypeLabel.', [
             '@amount' => count($ids),
-            '@entityTypeLabel' => count($ids) > 1
-                ? $entityType->getPluralLabel()
-                : $entityType->getSingularLabel(),
+            '@entityTypeLabel' => $entityTypeLabel,
         ]));
     }
 
