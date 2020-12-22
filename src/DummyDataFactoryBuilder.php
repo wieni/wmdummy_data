@@ -63,7 +63,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
 
     public function optional(float $weight = 50, $default = null): self
     {
-        if (mt_rand(1, 100) > $weight) {
+        if (random_int(1, 100) > $weight) {
             $this->default = $default;
             $this->useDefault = true;
         }

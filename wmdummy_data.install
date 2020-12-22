@@ -6,7 +6,7 @@ use Drupal\wmdummy_data\Entity\DummyEntity;
 /**
  * Install dummy_entity entity type
  */
-function wmdummy_data_update_8001()
+function wmdummy_data_update_8001(): void
 {
     $updateManager = \Drupal::entityDefinitionUpdateManager();
 
@@ -28,7 +28,7 @@ function wmdummy_data_update_8001()
 /**
  * Delete all existing dummy data
  */
-function wmdummy_data_update_8002()
+function wmdummy_data_update_8002(): void
 {
     $state = \Drupal::state();
     $entityTypeManager = \Drupal::entityTypeManager();
@@ -50,7 +50,7 @@ function wmdummy_data_update_8002()
 /**
  * Install dummy_entity base fields
  */
-function wmdummy_data_update_8003()
+function wmdummy_data_update_8003(): void
 {
     $updateManager = \Drupal::entityDefinitionUpdateManager();
 

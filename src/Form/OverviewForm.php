@@ -38,7 +38,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
 
     public static function create(ContainerInterface $container)
     {
-        $instance = new static;
+        $instance = new static();
         $instance->entityTypeManager = $container->get('entity_type.manager');
         $instance->currentUser = $container->get('current_user');
         $instance->messenger = $container->get('messenger');
@@ -81,7 +81,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
         return $form;
     }
 
-    public function validateForm(array &$form, FormStateInterface $formState)
+    public function validateForm(array &$form, FormStateInterface $formState): void
     {
         $name = $formState->getTriggeringElement()['#name'];
 
@@ -100,7 +100,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
         }
     }
 
-    public function submitForm(array &$form, FormStateInterface $formState)
+    public function submitForm(array &$form, FormStateInterface $formState): void
     {
     }
 

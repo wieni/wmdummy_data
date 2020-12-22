@@ -2,7 +2,7 @@
 
 use Drupal\Core\Entity\EntityInterface;
 
-function wmdummy_data_entity_delete(EntityInterface $entity)
+function wmdummy_data_entity_delete(EntityInterface $entity): void
 {
     \Drupal::getContainer()
         ->get('wmdummy_data.crud.subscriber')
