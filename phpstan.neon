@@ -1,15 +1,3 @@
-parameters:
-    autoload_files:
-        - vendor/drupal/core/includes/bootstrap.inc
-    fileExtensions:
-        - inc
-        - install
-        - module
-    paths:
-        - src
-    ignoreErrors:
-        - '#^Implicit array creation is not allowed - variable \$(events|fields) does not exist#'
-
 includes:
 	- vendor/wieni/wmcodestyle/phpstan/custom-rules.neon
-	- vendor/wieni/wmcodestyle/phpstan/php-project.neon
+	- vendor/wieni/wmcodestyle/phpstan/drupal-module.neon
