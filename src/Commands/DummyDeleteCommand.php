@@ -64,7 +64,7 @@ class DummyDeleteCommand extends DrushCommands
                 $query->condition('factory_name', $factory);
             } else {
                 $factories = $this->entityFactoryManager->getNamesByEntityType($entityType, $bundle);
-                $query->condition('factory_name', $factories, 'IN');
+                $query->condition('factory_name', array_keys($factories), 'IN');
             }
         }
 
