@@ -12,7 +12,7 @@ class ContentGenerateSubscriber implements EventSubscriberInterface
     /** @var \Drupal\wmcontent\WmContentManager */
     protected $wmContentManager;
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events[DummyDataEvents::CREATE][] = ['onCreate'];
 

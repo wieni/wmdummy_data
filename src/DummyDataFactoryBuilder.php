@@ -15,7 +15,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
 
     /** @var int */
     protected $chanceOfNew = 100;
-    /** @var mixed */
+    /** @var mixed|null */
     protected $default;
     /** @var bool */
     protected $useDefault = false;

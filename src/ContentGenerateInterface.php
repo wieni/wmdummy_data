@@ -2,6 +2,7 @@
 
 namespace Drupal\wmdummy_data;
 
+use Drupal\wmcontent\Entity\WmContentContainer;
 use Drupal\wmmodel_factory\FactoryBuilder;
 
 interface ContentGenerateInterface
@@ -13,5 +14,5 @@ interface ContentGenerateInterface
      *
      * @return FactoryBuilder[]
      */
-    public function generateContent(\Drupal\wmcontent\Entity\WmContentContainer $container): array;
+    public function generateContent(WmContentContainer $container): array;
 }

@@ -1,11 +1,11 @@
 <?php
 
-namespace  Drupal\wmdummy_data\Commands;
+namespace Drupal\wmdummy_data\Commands;
 
 use Consolidation\AnnotatedCommand\AnnotationData;
 use Consolidation\AnnotatedCommand\CommandData;
 use Drupal\Core\Entity\ContentEntityInterface;
-use Drupal\Core\Entity\EntityTypeBundleInfo;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\wmcontent\Entity\WmContentContainer;
@@ -22,7 +22,7 @@ class DummyCreateCommands extends DrushCommands
 {
     /** @var EntityTypeManagerInterface */
     protected $entityTypeManager;
-    /** @var EntityTypeBundleInfo */
+    /** @var EntityTypeBundleInfoInterface */
     protected $entityTypeBundleInfo;
     /** @var LanguageManagerInterface */
     protected $languageManager;
@@ -38,12 +38,13 @@ class DummyCreateCommands extends DrushCommands
 
     public function __construct(
         EntityTypeManagerInterface $entityTypeManager,
-        EntityTypeBundleInfo $entityTypeBundleInfo,
+        EntityTypeBundleInfoInterface $entityTypeBundleInfo,
         LanguageManagerInterface $languageManager,
         ModelFactoryInterface $modelFactory,
         EntityFactoryPluginManager $factoryPluginManager,
         DummyDataFactory $factory
     ) {
+        parent::__construct();
         $this->entityTypeBundleInfo = $entityTypeBundleInfo;
         $this->entityTypeManager = $entityTypeManager;
         $this->languageManager = $languageManager;
@@ -120,25 +121,25 @@ class DummyCreateCommands extends DrushCommands
 
         if (!$this->bundleExists($entityTypeId, $bundle)) {
             throw new InvalidArgumentException(
-                t('Bundle type with id \':bundle\' does not exist in the entity type \':entityType\'.', [':bundle' => $bundle, ':entityType' => $entityType])
+                t("Bundle type with id ':bundle' does not exist in the entity type ':entityType'.", [':bundle' => $bundle, ':entityType' => $entityTypeId])
             );
         }
 
         if (!is_numeric($count) || (float) $count <= 0) {
             throw new InvalidArgumentException(
-                t('\':count\' is not a valid count.', [':count' => $count])
+                t("':count' is not a valid count.", [':count' => $count])
             );
         }
 
         if (!$this->entityFactoryManager->getPluginIdByEntityType($entityTypeId, $bundle, $factory)) {
             throw new InvalidArgumentException(
-                t('Factory with name \':name\' does not exist.', [':name' => $factory])
+                t("Factory with name ':name' does not exist.", [':name' => $factory])
             );
         }
 
         if ($langcode && !$this->languageManager->getLanguage($langcode)) {
             throw new InvalidArgumentException(
-                t('\':langcode\' is not a valid langcode.', [':langcode' => $langcode])
+                t("':langcode' is not a valid langcode.", [':langcode' => $langcode])
             );
         }
     }
@@ -168,7 +169,7 @@ class DummyCreateCommands extends DrushCommands
         }
 
         $this->logger()->success(
-            "Successfully made {$count} dummies for {$entityTypeId} {$bundle} with factory {$factory}."
+            sprintf('Successfully made %d dummies for %s %s with factory %s.', $count, $entityTypeId, $bundle, $factory)
         );
     }
 
@@ -208,7 +209,7 @@ class DummyCreateCommands extends DrushCommands
         if (isset($this->wmContentManager)) {
             $createdContent = array_reduce(
                 $this->wmContentManager->getHostContainers($entity),
-                function (int $count, WmContentContainer $container) use ($entity) {
+                function (int $count, WmContentContainer $container) use ($entity): int {
                     return $count + count($this->wmContentManager->getContent($entity, $container->id()));
                 },
                 0

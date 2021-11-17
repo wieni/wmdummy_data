@@ -1,6 +1,6 @@
 <?php
 
-namespace  Drupal\wmdummy_data\Commands;
+namespace Drupal\wmdummy_data\Commands;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\wmmodel_factory\EntityFactoryPluginManager;
@@ -17,6 +17,7 @@ class DummyDeleteCommand extends DrushCommands
         EntityTypeManagerInterface $entityTypeManager,
         EntityFactoryPluginManager $entityFactoryManager
     ) {
+        parent::__construct();
         $this->entityTypeManager = $entityTypeManager;
         $this->entityFactoryManager = $entityFactoryManager;
     }
@@ -81,7 +82,7 @@ class DummyDeleteCommand extends DrushCommands
         }
 
         $this->logger()->success(
-            "{$totalCount} dummy entities have been annihilated."
+            sprintf('%s dummy entities have been annihilated.', $totalCount)
         );
     }
 }

@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- Add `drush/drush` & `wieni/wmcontent` as dev dependencies to prevent autoloading errors when running Rector
+- Add Rector
+
+## Changed
+- Apply coding standard fixes
+- Update `wieni/wmcodestyle`
+- Set Composer 2 as minimum version
+
 ## [3.0.0] - 2020-12-22
 ## Added
 - Track generated entities using new entity type instead of using state

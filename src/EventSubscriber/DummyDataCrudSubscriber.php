@@ -19,7 +19,7 @@ class DummyDataCrudSubscriber implements EventSubscriberInterface
         $this->entityTypeManager = $entityTypeManager;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         $events[DummyDataEvents::CREATE][] = ['onCreate'];
 

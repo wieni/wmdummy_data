@@ -23,7 +23,7 @@ use Drupal\wmdummy_data\DummyEntityInterface;
  */
 class DummyEntity extends ContentEntityBase implements DummyEntityInterface
 {
-    public static function baseFieldDefinitions(EntityTypeInterface $entityType)
+    public static function baseFieldDefinitions(EntityTypeInterface $entityType): array
     {
         $fields['did'] = BaseFieldDefinition::create('integer')
             ->setLabel(t('Dummy entity ID'))

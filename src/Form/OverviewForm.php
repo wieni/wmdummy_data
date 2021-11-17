@@ -49,7 +49,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
         return $instance;
     }
 
-    public function getFormId()
+    public function getFormId(): string
     {
         return 'wmdummy_data_overview';
     }
@@ -119,7 +119,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
                     ->states($states)
                     ->create();
             } catch (\Exception $e) {
-                $this->messenger->addError("An error occurred while generating: {$e->getMessage()}");
+                $this->messenger->addError(sprintf('An error occurred while generating: %s', $e->getMessage()));
                 break;
             }
             $generated++;
@@ -360,7 +360,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
         return array_combine($names, $names);
     }
 
-    protected function getEntityTypeOptions()
+    protected function getEntityTypeOptions(): array
     {
         return array_reduce(
             $this->entityTypeManager->getDefinitions(),
