@@ -10,10 +10,10 @@
         }
     ],
     "require": {
-        "php": ">=7.1.0 || ^8.0",
-        "drupal/core": "^8.7.7 || ^9",
+        "php": "^7.3 || ^8.0",
+        "drupal/core": "^9.3",
         "fakerphp/faker": "^1.10",
-        "wieni/wmmodel_factory": "^1.1"
+        "wieni/wmmodel_factory": "^2.0"
     },
     "require-dev": {
         "composer-runtime-api": "^2.0.0",
@@ -61,5 +61,11 @@
             "php-cs-fixer fix --config=.php_cs.php",
             "phpstan analyse"
         ]
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true,
+            "fenetikm/autoload-drupal": true
+        }
     }
 }

@@ -69,7 +69,7 @@ class PageFactory extends EntityFactoryBase implements ContentGenerateInterface
 
 #### Generate entities to reference
 To populate entity reference fields with new or existing entities, use the following methods in your generator:
-- `$this->faker->entity()` (passing the class name of a [wmmodel](https://github.com/wieni/wmmodel) bundle class)
+- `$this->faker->entity()` (passing the class name of an entity bundle class)
 - `$this->faker->entityWithType()` (passing entity type ID and optionally bundle as strings)
 
 ##### Example

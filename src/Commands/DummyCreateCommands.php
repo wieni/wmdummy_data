@@ -11,7 +11,6 @@ use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\wmcontent\Entity\WmContentContainer;
 use Drupal\wmcontent\WmContentManager;
 use Drupal\wmdummy_data\DummyDataFactory;
-use Drupal\wmmodel\Factory\ModelFactoryInterface;
 use Drupal\wmmodel_factory\EntityFactoryPluginManager;
 use Drush\Commands\DrushCommands;
 use InvalidArgumentException;
@@ -28,8 +27,6 @@ class DummyCreateCommands extends DrushCommands
     protected $languageManager;
     /** @var EntityFactoryPluginManager */
     protected $entityFactoryManager;
-    /** @var ModelFactoryInterface */
-    protected $modelFactory;
     /** @var DummyDataFactory */
     protected $factory;
 
@@ -40,7 +37,6 @@ class DummyCreateCommands extends DrushCommands
         EntityTypeManagerInterface $entityTypeManager,
         EntityTypeBundleInfoInterface $entityTypeBundleInfo,
         LanguageManagerInterface $languageManager,
-        ModelFactoryInterface $modelFactory,
         EntityFactoryPluginManager $factoryPluginManager,
         DummyDataFactory $factory
     ) {
@@ -48,7 +44,6 @@ class DummyCreateCommands extends DrushCommands
         $this->entityTypeBundleInfo = $entityTypeBundleInfo;
         $this->entityTypeManager = $entityTypeManager;
         $this->languageManager = $languageManager;
-        $this->modelFactory = $modelFactory;
         $this->entityFactoryManager = $factoryPluginManager;
         $this->factory = $factory;
     }

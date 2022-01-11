@@ -36,7 +36,8 @@ class Factory implements ContainerAwareInterface
             new DrupalEntity(
                 $generator,
                 $this->container,
-                $this->container->get('wmmodel.factory.model')
+                $this->container->get('entity_type.manager'),
+                $this->container->get('entity_type.repository')
             )
         );
 
