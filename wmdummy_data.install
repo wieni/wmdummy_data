@@ -38,6 +38,9 @@ function wmdummy_data_update_8002(): void
 
         $storage = $entityTypeManager->getStorage($entityTypeId);
         $ids = $state->get($key);
+        if (!$ids) {
+            continue;
+        }
         $entities = $storage->loadMultiple($ids);
 
         $storage->delete($entities);
