@@ -198,6 +198,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
             $query->condition('langcode', $this->langcode);
         }
 
+        $query->accessCheck(false);
         $ids = $query->execute();
 
         if (empty($ids)) {
@@ -235,6 +236,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
             $query->condition($key, $this->langcode);
         }
 
+        $query->accessCheck(false);
         $ids = $query->execute();
 
         if (empty($ids)) {

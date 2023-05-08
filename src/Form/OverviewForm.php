@@ -274,6 +274,7 @@ class OverviewForm implements FormInterface, ContainerInjectionInterface
             $query->condition('entity_type', $entityTypeId);
         }
 
+        $query->accessCheck(false);
         return $query->execute();
     }
 
