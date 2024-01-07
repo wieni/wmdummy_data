@@ -2,9 +2,9 @@
 
 namespace Drupal\wmdummy_data\Event;
 
+use Drupal\Component\EventDispatcher\Event;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\wmmodel_factory\EntityFactoryInterface;
-use Symfony\Component\EventDispatcher\Event;
 
 class BaseDummyDataEvent extends Event
 {

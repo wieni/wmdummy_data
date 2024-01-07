@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": "^7.3 || ^8.0",
-        "drupal/core": "^9.3",
+        "drupal/core": "^9.3 || ^10.0",
         "fakerphp/faker": "^1.10",
         "wieni/wmmodel_factory": "^2.0"
     },

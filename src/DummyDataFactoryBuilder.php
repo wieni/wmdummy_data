@@ -94,13 +94,13 @@ class DummyDataFactoryBuilder extends FactoryBuilder
 
             foreach ($made as $instance) {
                 $this->eventDispatcher->dispatch(
-                    DummyDataEvents::MAKE,
-                    new DummyDataMakeEvent($instance, $factory, $this->activeStates)
+                    new DummyDataMakeEvent($instance, $factory, $this->activeStates),
+                    DummyDataEvents::MAKE
                 );
 
                 $this->eventDispatcher->dispatch(
-                    DummyDataEvents::CREATE,
-                    new DummyDataCreateEvent($instance, $factory, $this->activeStates)
+                    new DummyDataCreateEvent($instance, $factory, $this->activeStates),
+                    DummyDataEvents::CREATE
                 );
             }
         }
@@ -129,8 +129,8 @@ class DummyDataFactoryBuilder extends FactoryBuilder
 
         foreach ($made as $instance) {
             $this->eventDispatcher->dispatch(
-                DummyDataEvents::MAKE,
-                new DummyDataMakeEvent($instance, $factory, $this->activeStates)
+                new DummyDataMakeEvent($instance, $factory, $this->activeStates),
+                DummyDataEvents::MAKE
             );
         }
 
@@ -198,6 +198,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
             $query->condition('langcode', $this->langcode);
         }
 
+        $query->accessCheck(false);
         $ids = $query->execute();
 
         if (empty($ids)) {
@@ -235,6 +236,7 @@ class DummyDataFactoryBuilder extends FactoryBuilder
             $query->condition($key, $this->langcode);
         }
 
+        $query->accessCheck(false);
         $ids = $query->execute();
 
         if (empty($ids)) {

@@ -73,6 +73,8 @@ class DummyDeleteCommand extends DrushCommands
             $query->condition('entity_language', $langcode);
         }
 
+        $query->accessCheck(false);
+
         $totalCount = (clone $query)->count()->execute();
         $ids = $query->execute();
 
