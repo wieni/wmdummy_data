@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [4.0.2] - 2024-01-07
+## Added
+- Add Drupal 10 support
+
+### Removed
+- Remove Drupal 8/9.1 support
+
 ## [4.0.1] - 2022-01-31
 ## Fixed
 - Fix update hook 8002 trying to delete 'null' when no existing dummy data exists
